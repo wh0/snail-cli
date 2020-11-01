@@ -1,0 +1,5 @@
+# For developing outside of Glitch, specify this manually.
+node_modules/
+
+# Going with shrinkwrap.yaml for now.
+package-lock.json
