@@ -187,8 +187,15 @@ commander.program
 commander.program
   .command('exec <command...>')
   .description('run a command in the project container')
-  // note API caveats: not binary safe, fully buffered output
-  // also output withheld on nonzero exit oops
+  .on('--help', () => {
+    console.log(`
+Limitations:
+Command line and output are not binary safe.
+No output is returned until the process exits.
+
+Implementation problems:
+Output is not printed when command fails.`);
+  })
   .action(doExec);
 commander.program
   .command('term')
@@ -205,7 +212,11 @@ const cmdAsset = commander.program
 cmdAsset
   .command('push <source>')
   .description('upload an assset')
-  // note: maintaining .glitch-assets is not implemented
+  .on('--help', () => {
+    console.log(`
+Implementation problems:
+Does not maintain .glitch-assets.`);
+  })
   .option('-n, --name <name>', 'destination filename (taken from source if not set)')
   .option('-t, --type <type>', 'asset MIME type', 'application/octet-stream')
   .option('-a, --max-age <age_seconds>', 'max-age for Cache-Control', 31536000)
