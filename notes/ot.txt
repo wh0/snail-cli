@@ -1,0 +1,38 @@
+//
+wss://api.glitch.com/(project uuid)/ot?authorization=(persistent token)
+
+> {"type":"master-state","clientId":"aeSLc0RTcXHVVKFU","force":true}
+< {"type":"master-state","state":{"id":"7d8fdbb2e9d1","version":2,"documents":{"root":{"docId":"root","docType":"directory","children":{".":"6a18ba86790a"}},"6a18ba86790a":{"name":".","docId":"6a18ba86790a","parentId":"root","docType":"directory","children":{".glitch-assets":"10c5eb65ef16","a.txt":"5299b77ec626","c.txt":"571e5bc5aacd","tofustrap.png":"06ccb3e91651"}},"10c5eb65ef16":{"name":".glitch-assets","docId":"10c5eb65ef16","parentId":"6a18ba86790a","docType":"file"},"5299b77ec626":{"name":"a.txt","docId":"5299b77ec626","parentId":"6a18ba86790a","docType":"file"},"571e5bc5aacd":{"name":"c.txt","docId":"571e5bc5aacd","parentId":"6a18ba86790a","docType":"file"},"06ccb3e91651":{"name":"tofustrap.png","docId":"06ccb3e91651","parentId":"6a18ba86790a","docType":"file","base64Content":"iVBORw0KGgoAAAANSUhEUgAAADIAAABJCAIAAADwuOLkAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAHYSURBVGhD7dhbTsMwEIXhboI3HtlnX9kX62ENYfA5Hk3juGR8IVY1n/qQTi7+cZFQuW1LiiyPV8n6MjiawJFVpmACHA1yKuvMwrgGOOrwR1bbMrgLOHKqZvU81MJzgKNt+7y94cX3hYOs3SMGksdqkL547tE+a1IQfL9/4GWz7vc7TxsPWdr0u10ZJv2k5pbZMkeWhTjgqAmykDIgy0IccHSaTdFjec6ALCu1EUd1co2m2CYxOMvCAsBRxmnOsnuG+cQsC4sJeywkqGwS/5SlsKpaN0ubIquAVVVkPYVV1bAs/P3iGz+sqkbu1opZi+7Wolku5c+AVdU1WeKaLOyH4PtH5SmsqqbvFgoE3yflBKuq9izBa/s+TeCDssOswyaxz1K4DThy4s3ZLkuCak2immXxwQlHJ/CGbJfFiypOZVlcJOGoghdlNotX1LmzLC6YcGTwRCKfF7J47i9dWRbXT+zk+e9QzbAsqycIpmT1iyyPyPKILI/I8ogsj8jyiCyPyPJ4rSzX94UGLVlomlp2nIXvCDXXZHHxCvkyc0GWLMyjCrlg3aypTaJ9t5q/mp5RzSr/q4aDyDI0q+b6LNkhxVHs1p4s/ITUIItXz3GQtYLI8lgya9t+AIR3qRxzehTJAAAAAElFTkSuQmCC"}}},"canBroadcast":true}
+
+< {"type":"broadcast","payload":{"type":"project-stats","timeNs":1602358423402000000,"cpuUsage":34196862115,"diskSize":209175552,"diskUsage":1929216,"memoryLimit":536870912,"memoryUsage":32301056,"quotaPercent":0.25}}
+
+// you get the top level `root`, the `.`, and the immediate children of `.` to get you started
+// then you register-document the children
+// official editor starts with register-document on `.`, maybe we don't have to
+> {"type":"register-document","docId":"aececd33dad3"}
+< {"type":"register-document","document":{"name":"inform7","docId":"aececd33dad3","parentId":"2b0b5265dd01","docType":"directory","children":{"ChangeLogs":{"name":"ChangeLogs","docId":"015162c30cb9","parentId":"aececd33dad3","docType":"directory","children":{}},"INSTALL":{"name":"INSTALL","docId":"503b4c7b63fe","parentId":"aececd33dad3","docType":"file"},"README":{"name":"README","docId":"528bf0b35ece","parentId":"aececd33dad3","docType":"file"}}}}
+
+// requesting a text file
+> {"type":"register-document","docId":"5299b77ec626"}
+< {"type":"register-document","document":{"name":"a.txt","docId":"5299b77ec626","parentId":"6a18ba86790a","docType":"file","content":"hello world\nasdf\na\n"}}
+
+// requesting a binary file
+> {"type":"register-document","docId":"06ccb3e91651"}
+< {"type":"register-document","document":{"name":"tofustrap.png","docId":"06ccb3e91651","parentId":"6a18ba86790a","docType":"file","base64Content":"iVBORw0KGgoAAAANSUhEUgAAADIAAABJCAIAAADwuOLkAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAHYSURBVGhD7dhbTsMwEIXhboI3HtlnX9kX62ENYfA5Hk3juGR8IVY1n/qQTi7+cZFQuW1LiiyPV8n6MjiawJFVpmACHA1yKuvMwrgGOOrwR1bbMrgLOHKqZvU81MJzgKNt+7y94cX3hYOs3SMGksdqkL547tE+a1IQfL9/4GWz7vc7TxsPWdr0u10ZJv2k5pbZMkeWhTjgqAmykDIgy0IccHSaTdFjec6ALCu1EUd1co2m2CYxOMvCAsBRxmnOsnuG+cQsC4sJeywkqGwS/5SlsKpaN0ubIquAVVVkPYVV1bAs/P3iGz+sqkbu1opZi+7Wolku5c+AVdU1WeKaLOyH4PtH5SmsqqbvFgoE3yflBKuq9izBa/s+TeCDssOswyaxz1K4DThy4s3ZLkuCak2immXxwQlHJ/CGbJfFiypOZVlcJOGoghdlNotX1LmzLC6YcGTwRCKfF7J47i9dWRbXT+zk+e9QzbAsqycIpmT1iyyPyPKILI/I8ogsj8jyiCyPyPJ4rSzX94UGLVlomlp2nIXvCDXXZHHxCvkyc0GWLMyjCrlg3aypTaJ9t5q/mp5RzSr/q4aDyDI0q+b6LNkhxVHs1p4s/ITUIItXz3GQtYLI8lgya9t+AIR3qRxzehTJAAAAAElFTkSuQmCC"}}
+
+// add d.txt
+> {"type":"client-oplist","opList":{"id":"N7m6B1bj9oiK5kkV","version":2,"ops":[{"type":"add","name":"d.txt","docId":"y0ykE60KjOCGbzr6","docType":"file","parentId":"6a18ba86790a"}]}}
+> {"type":"register-document","docId":"y0ykE60KjOCGbzr6"}
+< {"type":"accepted-oplist","opList":{"id":"N7m6B1bj9oiK5kkV","version":2,"ops":[{"type":"add","name":"d.txt","docId":"y0ykE60KjOCGbzr6","docType":"file","parentId":"6a18ba86790a"}]}}
+< {"type":"register-document","document":{"name":"d.txt","docId":"y0ykE60KjOCGbzr6","parentId":"6a18ba86790a","docType":"file","content":""}}
+
+// rename d.txt to e/f.txt
+> {"type":"client-oplist","opList":{"id":"lddhAf1Cf3k85NSy","version":3,"ops":[{"type":"add","name":"e","docId":"Jk8emh5jtalvQ4qm","docType":"directory","parentId":"6a18ba86790a"},{"type":"rename","docId":"y0ykE60KjOCGbzr6","newName":"f.txt","newParentId":"Jk8emh5jtalvQ4qm"}]}}
+< {"type":"accepted-oplist","opList":{"id":"lddhAf1Cf3k85NSy","version":3,"ops":[{"type":"add","name":"e","docId":"Jk8emh5jtalvQ4qm","docType":"directory","parentId":"6a18ba86790a"},{"type":"rename","docId":"y0ykE60KjOCGbzr6","newName":"f.txt","newParentId":"Jk8emh5jtalvQ4qm","oldParentId":"6a18ba86790a"}]}}
+
+// replace contents of a.txt
+> {"type":"client-oplist","opList":{"id":"svwNdn9WeB2WUt39","version":6,"ops":[{"docId":"5299b77ec626","type":"remove","text":"hello world\nasdf\na\n","position":0},{"docId":"5299b77ec626","type":"insert","text":"this is a\n","position":0}]}}
+< {"type":"accepted-oplist","opList":{"id":"svwNdn9WeB2WUt39","version":6,"ops":[{"docId":"5299b77ec626","type":"remove","text":"hello world\nasdf\na\n","position":0},{"docId":"5299b77ec626","type":"insert","text":"this is a\n","position":0}]}}
+
+
+// there's also a set-content op type, hm

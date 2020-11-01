@@ -1,0 +1,86 @@
+GET https://api.glitch.com/v1/projects/(project id)/policy
+<
+{"policy":"eyJl...=","signature":"+why...=","accessKeyId":"AKIA..."}
+
+// policy
+{
+   "expiration":"2020-10-26T17:50:29.721Z", // tomorrow
+   "conditions":[
+      {
+         "bucket":"production-assetsbucket-8ljvyr1xczmb"
+      },
+      [
+         "starts-with",
+         "$key",
+         "(project id)/"
+      ],
+      {
+         "acl":"public-read"
+      },
+      [
+         "starts-with",
+         "$Cache-Control",
+         ""
+      ],
+      [
+         "starts-with",
+         "$Content-Type",
+         ""
+      ],
+      [
+         "content-length-range",
+         0,
+         268435456 // 256 MiB
+      ]
+   ]
+}
+
+POST https://s3.amazonaws.com/production-assetsbucket-8ljvyr1xczmb
+>
+-----------------------------86254256728433402201034739172
+Content-Disposition: form-data; name="key"
+
+(project id)/no-assets-yet.png
+-----------------------------86254256728433402201034739172
+Content-Disposition: form-data; name="Content-Type"
+
+image/png
+-----------------------------86254256728433402201034739172
+Content-Disposition: form-data; name="Cache-Control"
+
+max-age=31536000
+-----------------------------86254256728433402201034739172
+Content-Disposition: form-data; name="AWSAccessKeyId"
+
+AKIA...
+-----------------------------86254256728433402201034739172
+Content-Disposition: form-data; name="acl"
+
+public-read
+-----------------------------86254256728433402201034739172
+Content-Disposition: form-data; name="policy"
+
+eyJl...=
+-----------------------------86254256728433402201034739172
+Content-Disposition: form-data; name="signature"
+
++why...=
+-----------------------------86254256728433402201034739172
+Content-Disposition: form-data; name="file"; filename="no-assets-yet.png"
+Content-Type: image/png
+
+...
+
+// default 365 days max-age
+
+// https://s3.amazonaws.com/production-assetsbucket-8ljvyr1xczmb/(project id)/no-assets-yet.png
+  cdnURL(s3URL) {
+    if (!s3URL) {
+      return '';
+    }
+    // eslint-disable-next-line no-useless-escape, no-useless-escape, no-useless-escape
+    return s3URL.replace(/https?\:\/\/[^\/]+\/[^\/]+\//, `${CDN_URL}/`);
+  }
+// https://cdn.glitch.com/(project id)%2Fno-assets-yet.png
+  const versionedUrl = `${url}?${qs.stringify({ v: moment(date).valueOf() })}`;
+// https://cdn.glitch.com/(project id)%2Fno-assets-yet.png?v=1603648230535
