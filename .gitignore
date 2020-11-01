@@ -3,3 +3,5 @@ node_modules/
 
 # Going with shrinkwrap.yaml for now.
 package-lock.json
+
+/.env
