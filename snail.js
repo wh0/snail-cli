@@ -55,6 +55,20 @@ async function doRemote(domain) {
   await util.promisify(childProcess.execFile)('git', ['remote', 'add', remoteName, url]);
 }
 
+async function doSetenv(name, value) {
+  const env = {};
+  env[name] = value;
+  const res = await fetch(`https://api.glitch.com/projects/${await getProjectDomainFromRemote()}/setenv`, {
+    method: 'POST',
+    headers: {
+      'Authorization': await getPersistentToken(),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({env}),
+  });
+  if (!res.ok) throw new Error('response not ok ' + res.status)
+}
+
 async function doExec(command) {
   const projectDomain = await getProjectDomainFromRemote();
   const project = await getProjectByDomain(projectDomain);
@@ -184,6 +198,10 @@ commander.program
   .command('remote <domain>')
   .description('set up the glitch git remote')
   .action(doRemote);
+commander.program
+  .command('setenv <name> <value>')
+  .description('set an environment variable')
+  .action(doSetenv);
 commander.program
   .command('exec <command...>')
   .description('run a command in the project container')
