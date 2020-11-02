@@ -152,6 +152,18 @@ async function doLogs() {
   });
 }
 
+async function doStop() {
+  const projectDomain = await getProjectDomainFromRemote();
+  const project = await getProjectByDomain(projectDomain);
+  const res = await fetch(`https://api.glitch.com/v1/projects/${project.id}/stop`, {
+    method: 'POST',
+    headers: {
+      'Authorization': await getPersistentToken(),
+    },
+  });
+  if (!res.ok) throw new Error('response not ok ' + res.status)
+}
+
 async function doAPush(source, cmd) {
   const FormData = require('form-data');
 
@@ -223,6 +235,10 @@ commander.program
   .command('logs')
   .description('watch application logs')
   .action(doLogs);
+commander.program
+  .command('stop')
+  .description('stop project container')
+  .action(doStop);
 const cmdAsset = commander.program
   .command('asset')
   .alias('a')
