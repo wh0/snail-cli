@@ -1,9 +1,9 @@
 dependencies:
-  commander: 6.1.0
+  commander: 6.2.1
   form-data: 3.0.0
   node-fetch: 2.6.1
   socket.io-client: 2.3.1
-  ws: 7.3.1
+  ws: 7.4.2
 packages:
   /after/0.8.2:
     dev: false
@@ -43,12 +43,12 @@ packages:
       node: '>= 0.8'
     resolution:
       integrity: sha512-FQN4MRfuJeHf7cBbBMJFXhKSDq+2kAArBlmRBvcvFE5BB1HZKXtSFASDhdlz9zOYwxh8lDdnvmMOe/+5cdoEdg==
-  /commander/6.1.0:
+  /commander/6.2.1:
     dev: false
     engines:
       node: '>= 6'
     resolution:
-      integrity: sha512-wl7PNrYWd2y5mp1OK/LhTlv8Ff4kQJQRXXAvF+uU/TPNiVJUxZLRYGj/B0y/lPGAVcSbJqH2Za/cvHmrPMC8mA==
+      integrity: sha512-U7VdrJFnJgo4xjrHpTzu0yrHPGImdsmD95ZlgYSEajAn2JKzDhDTPG9kBTefmObL2w/ngeZnilk+OV9CG3d7UA==
   /component-bind/1.0.0:
     dev: false
     resolution:
@@ -193,7 +193,7 @@ packages:
     dev: false
     resolution:
       integrity: sha512-eqZfL+NE/YQc1/ZynhojeV8q+H050oR8AZ2uIev7RU10svA9ZnJUddHcOUZTJLinZ9yEfdA2kSATS2qZK5fhJA==
-  /ws/7.3.1:
+  /ws/7.4.2:
     dev: false
     engines:
       node: '>=8.3.0'
@@ -201,7 +201,7 @@ packages:
       bufferutil: ^4.0.1
       utf-8-validate: ^5.0.2
     resolution:
-      integrity: sha512-D3RuNkynyHmEJIpD2qrgVkc9DQ23OrN/moAwZX4L8DfvszsJxpjQuUq3LMx6HoYji9fbIOBY18XWBsAux1ZZUA==
+      integrity: sha512-T4tewALS3+qsrpGI/8dqNMLIVdq/g/85U98HPMa6F0m6xTbvhXU6RCQLqPH3+SlomNV/LdY6RXEbBpMH6EOJnA==
   /xmlhttprequest-ssl/1.5.5:
     dev: false
     engines:
@@ -216,8 +216,8 @@ registry: 'https://registry.npmjs.org/'
 shrinkwrapMinorVersion: 9
 shrinkwrapVersion: 3
 specifiers:
-  commander: ^6.1.0
+  commander: ^6.2.1
   form-data: ^3.0.0
   node-fetch: ^2.6.1
   socket.io-client: ^2.3.1
-  ws: ^7.3.1
+  ws: ^7.4.2
