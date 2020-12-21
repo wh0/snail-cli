@@ -193,13 +193,10 @@ async function doAPush(source, cmd) {
   form.append('acl', acl);
   form.append('policy', body.policy);
   form.append('signature', body.signature);
-  // ugh our libraries can't figure out the content-length if we stream. for now, read it into memory
-  form.append('file', await fs.promises.readFile(source));
-  const res2 = await fetch(`https://s3.amazonaws.com/${bucket}`, {
-    method: 'POST',
-    body: form,
-  });
-  if (!res2.ok) throw new Error('response not ok ' + res2.status);
+  form.append('file', fs.createReadStream(source));
+  // node-fetch is variously annoying about how it sends FormData
+  const res2 = await util.promisify(form.submit).call(form, `https://s3.amazonaws.com/${bucket}`);
+  if (res2.statusCode < 200 || res2.statusCode >= 300) throw new Error('response not ok ' + res2.statusCode);
   console.log(`https://cdn.glitch.com/${encodeURIComponent(key)}?v=${Date.now()}`);
 }
 

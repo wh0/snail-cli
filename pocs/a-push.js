@@ -1,5 +1,7 @@
 const fs = require('fs');
 const path = require('path');
+const stream = require('stream');
+const util = require('util');
 
 const fetch = require('node-fetch');
 const FormData = require('form-data');
@@ -7,9 +9,7 @@ const FormData = require('form-data');
 (async function () {
   try {
     const filename = path.basename(process.argv[2]);
-    // ugh our libraries can't figure out the content-length from a stream. read it into memory for now
-    // const content = fs.createReadStream(process.argv[2]);
-    const content = await fs.promises.readFile(process.argv[2]);
+    const content = fs.createReadStream(process.argv[2]);
     const res = await fetch(`https://api.glitch.com/v1/projects/${process.env.G_PROJECT_ID}/policy`, {
       headers: {
         'Authorization': process.env.G_PERSISTENT_TOKEN,
@@ -39,11 +39,10 @@ const FormData = require('form-data');
     form.append('policy', body.policy);
     form.append('signature', body.signature);
     form.append('file', content);
-    const res2 = await fetch(`https://s3.amazonaws.com/${bucket}`, {
-      method: 'POST',
-      body: form,
-    });
-    console.log(res2, await res2.text()); // %%%
+    // node-fetch is variously annoying about how it sends FormData
+    const res2 = await util.promisify(form.submit).call(form, `https://s3.amazonaws.com/${bucket}`);
+    console.log(res2); // %%%
+    await util.promisify(stream.pipeline)(res2, process.stdout); // %%%
   } catch (e) {
     console.error(e);
   }
