@@ -115,7 +115,7 @@ async function doTerm() {
     process.exit(0);
   });
   socket.on('data', (data) => {
-    process.stdin.write(data);
+    process.stdout.write(data);
   });
 
   process.stdout.on('resize', handleResize);
