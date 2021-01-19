@@ -200,6 +200,19 @@ async function doAPush(source, cmd) {
   console.log(`https://cdn.glitch.com/${encodeURIComponent(key)}?v=${Date.now()}`);
 }
 
+async function doWebEdit() {
+  console.log(`https://glitch.com/edit/#!/${await getProjectDomainFromRemote()}`);
+}
+
+async function doWebTerm(cmd) {
+  const projectDomain = await getProjectDomainFromRemote();
+  if (cmd.opts().cap) {
+    console.log(`https://api.glitch.com/${projectDomain}/console/${await getPersistentToken()}/`);
+  } else {
+    console.log(`https://glitch.com/edit/console.html?${projectDomain}`);
+  }
+}
+
 commander.program.storeOptionsAsProperties(false);
 commander.program
   .command('remote <domain>')
@@ -250,6 +263,18 @@ Does not maintain .glitch-assets.`);
   .option('-t, --type <type>', 'asset MIME type', 'application/octet-stream')
   .option('-a, --max-age <age_seconds>', 'max-age for Cache-Control', 31536000)
   .action(doAPush);
+const cmdWeb = commander.program
+  .command('web')
+  .description('display web URLs');
+cmdWeb
+  .command('edit')
+  .description('display editor URL')
+  .action(doWebEdit);
+cmdWeb
+  .command('term')
+  .description('display terminal URL')
+  .option('-c, --cap', 'display inner URL with persistent token')
+  .action(doWebTerm);
 commander.program.parseAsync(process.argv).catch((e) => {
   console.error(e);
   process.exit(1);
