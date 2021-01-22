@@ -20,9 +20,9 @@ const socket = io('https://api.glitch.com', {
   path: `/${process.env.G_PROJECT_DOMAIN}/console/${process.env.G_PERSISTENT_TOKEN}/socket.io`,
 });
 
-socket.on('disconnect', () => {
+socket.on('disconnect', (reason) => {
   if (!returned) {
-    throw new Error('Socket disconnected');
+    throw new Error('Socket disconnected: ' + reason);
   }
 });
 socket.on('error', (e) => {

@@ -100,8 +100,8 @@ async function doTerm() {
     });
   }
 
-  socket.on('disconnect', () => {
-    console.error('Socket disconnected');
+  socket.on('disconnect', (reason) => {
+    console.error('Socket disconnected: ' + reason);
     process.exit(1);
   });
   socket.on('error', (e) => {
