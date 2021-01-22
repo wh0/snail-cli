@@ -6,6 +6,8 @@ const util = require('util');
 const commander = require('commander');
 const fetch = require('node-fetch').default;
 
+const package = require('../package.json');
+
 // credentials
 
 async function getPersistentToken() {
@@ -214,6 +216,8 @@ async function doWebTerm(cmd) {
 }
 
 commander.program.storeOptionsAsProperties(false);
+commander.program.name('snail');
+commander.program.version(package.version);
 commander.program
   .command('remote <domain>')
   .description('set up the glitch git remote')
