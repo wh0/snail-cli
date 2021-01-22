@@ -1,0 +1,32 @@
+//
+set env GLITCH_DEBUGGER=true
+https://glitch.com/edit/debugger.html?(project id)
+
+POST https://api.glitch.com/v1/projects/(project id)/singlePurposeTokens/devtools
+>
+(no body)
+<
+{"token":"41ea..."}
+
+//
+devtools://devtools/bundled/inspector.html?ws=api.glitch.com:80/project/debugger/41ea...
+
+//
+  192 app       25   5   19760   3156   2840 S   0.0  0.1   0:00.00                  `- bash /opt/watcher/app-types/node/start.sh
+  210 app       25   5  861020  30428  25120 S   0.0  0.5   0:00.13                      `- node source/debugger.js node server.js
+// cwd of 210 is /opt/debugger
+
+//
+if [ -z "${GLITCH_DEBUGGER}" ]; then
+  if [ "${START_SCRIPT}" = "null" ]; then
+    (>&2 echo "Check /app/package.json: command not found. Is a start script missing? https://glitch.com/help/failstart/")
+  else
+    eval ${START_SCRIPT} & pid=$!
+  fi
+else
+  cd /opt/debugger
+  node source/debugger.js "${START_SCRIPT}" & pid=$!
+fi
+
+//
+ports 9200 (DEBUGGER_PORT), 1988 (APP_PORT)
