@@ -126,6 +126,86 @@ async function doTerm() {
   });
 }
 
+async function doTPipe(command, cmd) {
+  const io = require('socket.io-client');
+
+  function shellWord(s) {
+    return '\'' + s.replace(/'/g, '\'"\'"\'') + '\'';
+  }
+
+  // see pocs/t-pipe-wrap.js
+  const WRAPPER_SRC = 'const s=require("child_process");process.stdin.setRawMode(!0),process.stdout.write("s\\n"),setInterval((()=>{process.stdout.write("p\\n")}),4e3);const t=s.spawn(process.argv[1],{stdio:"pipe",shell:!0});let e="";process.stdin.setEncoding("ascii"),process.stdin.on("data",(s=>{const o=(e+s).split("\\n");e=o.pop();for(const s of o)s?t.stdin.write(Buffer.from(s,"base64")):t.stdin.end()})),t.stdout.on("data",(s=>{process.stdout.write("o"+s.toString("base64")+"\\n")})),t.stdout.on("end",(()=>{process.stdout.write("O\\n")})),t.stderr.on("data",(s=>{process.stdout.write("e"+s.toString("base64")+"\\n")})),t.stderr.on("end",(()=>{process.stdout.write("E\\n")})),t.on("exit",((s,t)=>{const e=null===t?s:1;process.stdout.write("r"+e+"\\n"),process.exit()}));';
+
+  let stdinStarted = false;
+  let stdoutEnded = false;
+  let stderrEnded = false;
+  let returned = false;
+  let recvBuf = '';
+
+  const socket = io('https://api.glitch.com', {
+    path: `/${await getProjectDomainFromRemote()}/console/${await getPersistentToken()}/socket.io`,
+  });
+
+  socket.on('disconnect', (reason) => {
+    if (!returned) {
+      throw new Error('Socket disconnected: ' + reason);
+    }
+  });
+  socket.on('error', (e) => {
+    console.error(e);
+  });
+  socket.on('data', (data) => {
+    const parts = (recvBuf + data).split('\n');
+    recvBuf = parts.pop();
+    for (const part of parts) {
+      switch (part[0]) {
+        case 's':
+          if (stdinStarted) break;
+          stdinStarted = true;
+          process.stdin.on('data', (chunk) => {
+            socket.emit('input', chunk.toString('base64') + '\n');
+          });
+          process.stdin.on('end', () => {
+            socket.emit('input', '\n');
+          });
+          break;
+        case 'p':
+          break;
+        case 'o':
+          if (stdoutEnded) break;
+          process.stdout.write(Buffer.from(part.slice(1), 'base64'));
+          break;
+        case 'O':
+          if (stdoutEnded) break;
+          stdoutEnded = true;
+          process.stdout.end();
+          break;
+        case 'e':
+          if (stderrEnded) break;
+          process.stderr.write(Buffer.from(part.slice(1), 'base64'));
+          break;
+        case 'E':
+          if (stderrEnded) break;
+          stderrEnded = true;
+          process.stderr.end();
+          break;
+        case 'r':
+          if (returned) break;
+          returned = true;
+          process.exit(+part.slice(1));
+          break;
+        default:
+          if (cmd.opts().debug) {
+            console.error(part);
+          }
+      }
+    }
+  });
+  socket.once('login', () => {
+    socket.emit('input', 'unset HISTFILE && exec /opt/nvm/versions/node/v10/bin/node -e ' + shellWord(WRAPPER_SRC) + ' ' + shellWord(command.join(' ')) + '\n');
+  });
+}
+
 async function doLogs() {
   const WebSocket = require('ws');
 
@@ -239,10 +319,32 @@ Implementation problems:
 Output is not printed when command fails.`);
   })
   .action(doExec);
-commander.program
+const cmdTerm = commander.program
   .command('term')
+  .alias('t')
   .description('connect to a project terminal')
   .action(doTerm);
+cmdTerm
+  .command('pipe <command...>')
+  .description('run a command and transfer binary data to and from it')
+  .on('--help', () => {
+    console.log(`
+Examples:
+    # Download a file
+    snail t pipe 'cat .data/omni.db' >omni.db
+    # Upload a file
+    snail t pipe 'cat >.data/omni.db' <omni.db
+
+Implementation problems:
+There is no backpressure, on either side. snail will grow in memory when there
+is more data on stdin than the network can send. The WeTTY server will grow in
+memory when there is more data on stdout than the network can receive. Restart
+the project container with (snail stop) to reclaim memory from WeTTY. Data is
+transferred in base64 due to the terminal API supporting UTF-8 only, which is
+inefficient.`);
+  })
+  .option('--debug', 'show unrecognized lines from terminal session')
+  .action(doTPipe);
 commander.program
   .command('logs')
   .description('watch application logs')
