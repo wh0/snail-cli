@@ -126,7 +126,7 @@ async function doTerm() {
   });
 }
 
-async function doTPipe(command, cmd) {
+async function doTPipe(command, opts) {
   const io = require('socket.io-client');
 
   function shellWord(s) {
@@ -195,7 +195,7 @@ async function doTPipe(command, cmd) {
           process.exit(+part.slice(1));
           break;
         default:
-          if (cmd.opts().debug) {
+          if (opts.debug) {
             console.error(part);
           }
       }
@@ -244,7 +244,7 @@ async function doStop() {
   if (!res.ok) throw new Error('response not ok ' + res.status)
 }
 
-async function doAPush(source, cmd) {
+async function doAPush(source, opts) {
   const FormData = require('form-data');
 
   const projectDomain = await getProjectDomainFromRemote();
@@ -266,11 +266,11 @@ async function doAPush(source, cmd) {
       if ('acl' in condition) acl = condition.acl;
     }
   }
-  const key = keyPrefix + (cmd.opts().name || path.basename(source));
+  const key = keyPrefix + (opts.name || path.basename(source));
   const form = new FormData();
   form.append('key', key);
-  form.append('Content-Type', cmd.opts().type);
-  form.append('Cache-Control', `max-age=${cmd.opts().maxAge}`);
+  form.append('Content-Type', opts.type);
+  form.append('Cache-Control', `max-age=${opts.maxAge}`);
   form.append('AWSAccessKeyId', body.accessKeyId);
   form.append('acl', acl);
   form.append('policy', body.policy);
@@ -286,16 +286,15 @@ async function doWebEdit() {
   console.log(`https://glitch.com/edit/#!/${await getProjectDomainFromRemote()}`);
 }
 
-async function doWebTerm(cmd) {
+async function doWebTerm(opts) {
   const projectDomain = await getProjectDomainFromRemote();
-  if (cmd.opts().cap) {
+  if (opts.cap) {
     console.log(`https://api.glitch.com/${projectDomain}/console/${await getPersistentToken()}/`);
   } else {
     console.log(`https://glitch.com/edit/console.html?${projectDomain}`);
   }
 }
 
-commander.program.storeOptionsAsProperties(false);
 commander.program.name('snail');
 commander.program.version(package.version);
 commander.program
@@ -309,15 +308,13 @@ commander.program
 commander.program
   .command('exec <command...>')
   .description('run a command in the project container')
-  .on('--help', () => {
-    console.log(`
+  .addHelpText('after', `
 Limitations:
 Command line and output are not binary safe.
 No output is returned until the process exits.
 
 Implementation problems:
-Output is not printed when command fails.`);
-  })
+Output is not printed when command fails.`)
   .action(doExec);
 const cmdTerm = commander.program
   .command('term')
@@ -327,8 +324,7 @@ const cmdTerm = commander.program
 cmdTerm
   .command('pipe <command...>')
   .description('run a command and transfer binary data to and from it')
-  .on('--help', () => {
-    console.log(`
+  .addHelpText('after', `
 Examples:
     # Download a file
     snail t pipe 'cat .data/omni.db' >omni.db
@@ -341,8 +337,7 @@ is more data on stdin than the network can send. The WeTTY server will grow in
 memory when there is more data on stdout than the network can receive. Restart
 the project container with (snail stop) to reclaim memory from WeTTY. Data is
 transferred in base64 due to the terminal API supporting UTF-8 only, which is
-inefficient.`);
-  })
+inefficient.`)
   .option('--debug', 'show unrecognized lines from terminal session')
   .action(doTPipe);
 commander.program
@@ -360,11 +355,9 @@ const cmdAsset = commander.program
 cmdAsset
   .command('push <source>')
   .description('upload an assset')
-  .on('--help', () => {
-    console.log(`
+  .addHelpText('after', `
 Implementation problems:
-Does not maintain .glitch-assets.`);
-  })
+Does not maintain .glitch-assets.`)
   .option('-n, --name <name>', 'destination filename (taken from source if not set)')
   .option('-t, --type <type>', 'asset MIME type', 'application/octet-stream')
   .option('-a, --max-age <age_seconds>', 'max-age for Cache-Control', 31536000)
