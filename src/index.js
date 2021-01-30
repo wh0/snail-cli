@@ -244,6 +244,19 @@ async function doStop() {
   if (!res.ok) throw new Error('response not ok ' + res.status)
 }
 
+async function doAPolicy() {
+  const projectDomain = await getProjectDomainFromRemote();
+  const project = await getProjectByDomain(projectDomain);
+  const res = await fetch(`https://api.glitch.com/v1/projects/${project.id}/policy`, {
+    headers: {
+      'Authorization': await getPersistentToken(),
+    },
+  });
+  if (!res.ok) throw new Error('response not ok ' + res.status);
+  const body = await res.json();
+  console.log(JSON.stringify(body));
+}
+
 async function doAPush(source, opts) {
   const FormData = require('form-data');
 
@@ -352,6 +365,10 @@ const cmdAsset = commander.program
   .command('asset')
   .alias('a')
   .description('manage CDN assets');
+cmdAsset
+  .command('policy')
+  .description('provision an S3 POST policy for asset upload')
+  .action(doAPolicy);
 cmdAsset
   .command('push <source>')
   .description('upload an assset')
