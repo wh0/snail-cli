@@ -164,7 +164,7 @@ async function doTPipe(command, opts) {
     return '\'' + s.replace(/'/g, '\'"\'"\'') + '\'';
   }
 
-  // see pocs/t-pipe-wrap.js
+  // see pipe-wrap.js
   const WRAPPER_SRC = 'const s=require("child_process");process.stdin.setRawMode(!0),process.stdout.write("s\\n"),setInterval((()=>{process.stdout.write("p\\n")}),4e3);const t=s.spawn(process.argv[1],{stdio:"pipe",shell:!0});let e="";process.stdin.setEncoding("ascii"),process.stdin.on("data",(s=>{const o=(e+s).split("\\n");e=o.pop();for(const s of o)s?t.stdin.write(Buffer.from(s,"base64")):t.stdin.end()})),t.stdout.on("data",(s=>{process.stdout.write("o"+s.toString("base64")+"\\n")})),t.stdout.on("end",(()=>{process.stdout.write("O\\n")})),t.stderr.on("data",(s=>{process.stdout.write("e"+s.toString("base64")+"\\n")})),t.stderr.on("end",(()=>{process.stdout.write("E\\n")})),t.on("exit",((s,t)=>{const e=null===t?s:1;process.stdout.write("r"+e+"\\n"),process.exit()}));';
 
   let stdinStarted = false;

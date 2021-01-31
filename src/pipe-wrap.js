@@ -1,3 +1,5 @@
+// minify this file for `doTPipe`
+
 const childProcess = require('child_process');
 
 process.stdin.setRawMode(true);
