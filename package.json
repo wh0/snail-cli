@@ -8,6 +8,9 @@
   "bin": {
     "snail": "./snail.js"
   },
+  "scripts": {
+    "start": "cd dist && python3 -m http.server"
+  },
   "dependencies": {
     "commander": "^7.0.0",
     "form-data": "^3.0.0",
