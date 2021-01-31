@@ -395,3 +395,8 @@ commander.program.parseAsync(process.argv).catch((e) => {
   console.error(e);
   process.exit(1);
 });
+
+// Local Variables:
+// indent-tabs-mode: nil
+// js-indent-level: 2
+// End:
