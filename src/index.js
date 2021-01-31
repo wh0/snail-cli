@@ -20,7 +20,7 @@ async function boot() {
       'Authorization': await getPersistentToken(),
     },
   });
-  if (!res.ok) throw new Error('response not ok ' + res.status);
+  if (!res.ok) throw new Error(`Glitch boot response ${res.status} not ok`);
   return await res.json();
 }
 
@@ -42,7 +42,7 @@ async function getProjectByDomain(domain) {
       'Authorization': await getPersistentToken(),
     },
   });
-  if (!res.ok) throw new Error('response not ok ' + res.status);
+  if (!res.ok) throw new Error(`Glitch projects by domain response ${res.status} not ok`);
   const body = await res.json();
   return body[domain];
 }
@@ -66,7 +66,7 @@ async function doSetenv(name, value) {
     },
     body: JSON.stringify({env}),
   });
-  if (!res.ok) throw new Error('response not ok ' + res.status)
+  if (!res.ok) throw new Error(`Glitch setenv response ${res.status} not ok`);
 }
 
 async function doExec(command) {
@@ -82,7 +82,7 @@ async function doExec(command) {
       command: command.join(' '),
     }),
   });
-  if (!res.ok) throw new Error('response not ok ' + res.status);
+  if (!res.ok) throw new Error(`Glitch exec response ${res.status} not ok`);
   const body = await res.json();
   process.stdout.write(body.stdout);
   process.stderr.write(body.stderr);
@@ -103,7 +103,7 @@ async function doTerm() {
   }
 
   socket.on('disconnect', (reason) => {
-    console.error('Socket disconnected: ' + reason);
+    console.error(`Socket disconnected: ${reason}`);
     process.exit(1);
   });
   socket.on('error', (e) => {
@@ -148,7 +148,7 @@ async function doTPipe(command, opts) {
 
   socket.on('disconnect', (reason) => {
     if (!returned) {
-      throw new Error('Socket disconnected: ' + reason);
+      throw new Error(`Socket disconnected: ${reason}`);
     }
   });
   socket.on('error', (e) => {
@@ -202,7 +202,7 @@ async function doTPipe(command, opts) {
     }
   });
   socket.once('login', () => {
-    socket.emit('input', 'unset HISTFILE && exec /opt/nvm/versions/node/v10/bin/node -e ' + shellWord(WRAPPER_SRC) + ' ' + shellWord(command.join(' ')) + '\n');
+    socket.emit('input', `unset HISTFILE && exec /opt/nvm/versions/node/v10/bin/node -e ${shellWord(WRAPPER_SRC)} ${shellWord(command.join(' '))}\n`);
   });
 }
 
@@ -241,7 +241,7 @@ async function doStop() {
       'Authorization': await getPersistentToken(),
     },
   });
-  if (!res.ok) throw new Error('response not ok ' + res.status)
+  if (!res.ok) throw new Error(`Glitch stop response ${res.status} not ok`);
 }
 
 async function doAPolicy() {
@@ -252,7 +252,7 @@ async function doAPolicy() {
       'Authorization': await getPersistentToken(),
     },
   });
-  if (!res.ok) throw new Error('response not ok ' + res.status);
+  if (!res.ok) throw new Error(`Glitch policy response ${res.status} not ok`);
   const body = await res.json();
   console.log(JSON.stringify(body));
 }
@@ -262,13 +262,13 @@ async function doAPush(source, opts) {
 
   const projectDomain = await getProjectDomainFromRemote();
   const project = await getProjectByDomain(projectDomain);
-  const res = await fetch(`https://api.glitch.com/v1/projects/${project.id}/policy`, {
+  const policyRes = await fetch(`https://api.glitch.com/v1/projects/${project.id}/policy`, {
     headers: {
       'Authorization': await getPersistentToken(),
     },
   });
-  if (!res.ok) throw new Error('response not ok ' + res.status);
-  const body = await res.json();
+  if (!policyRes.ok) throw new Error(`Glitch policy response ${policyRes.status} not ok`);
+  const body = await policyRes.json();
   const policy = JSON.parse(Buffer.from(body.policy, 'base64').toString('utf-8'));
   let bucket, keyPrefix, acl;
   for (const condition of policy.conditions) {
@@ -290,8 +290,8 @@ async function doAPush(source, opts) {
   form.append('signature', body.signature);
   form.append('file', fs.createReadStream(source));
   // node-fetch is variously annoying about how it sends FormData
-  const res2 = await util.promisify(form.submit).call(form, `https://s3.amazonaws.com/${bucket}`);
-  if (res2.statusCode < 200 || res2.statusCode >= 300) throw new Error('response not ok ' + res2.statusCode);
+  const uploadRes = await util.promisify(form.submit).call(form, `https://s3.amazonaws.com/${bucket}`);
+  if (uploadRes.statusCode < 200 || uploadRes.statusCode >= 300) throw new Error(`S3 upload response ${uploadRes.statusCode} not ok`);
   console.log(`https://cdn.glitch.com/${encodeURIComponent(key)}?v=${Date.now()}`);
 }
 

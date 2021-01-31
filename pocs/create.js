@@ -18,7 +18,7 @@ const base_project_id = '33ebcb39-397a-4ab9-bc6a-868aeb7914e1'; // empty-glitch
     });
     console.log(res);
     console.log(res.headers);
-    if (!res.ok) throw new Error('response not ok ' + res.status)
+    if (!res.ok) throw new Error('response not ok ' + res.status);
     const body = await res.json();
     console.log(body);
   } catch (e) {

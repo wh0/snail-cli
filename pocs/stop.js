@@ -11,7 +11,7 @@ const fetch = require('node-fetch');
     });
     console.log(res);
     console.log(res.headers);
-    if (!res.ok) throw new Error('response not ok ' + res.status)
+    if (!res.ok) throw new Error('response not ok ' + res.status);
     const body = await res.text();
     console.log(body);
   } catch (e) {
