@@ -1,5 +1,6 @@
 const childProcess = require('child_process');
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const util = require('util');
 
@@ -10,8 +11,22 @@ const package = require('../package.json');
 
 // credentials
 
-async function getPersistentToken() {
+function getPersistentTokenFromEnv() {
   return process.env.G_PERSISTENT_TOKEN;
+}
+
+async function getPersistentTokenFromConfig() {
+  return (await fs.promises.readFile(path.join(os.homedir(), '.config', 'snail', 'persistent-token'), 'utf8')).trim();
+}
+
+async function getPersistentTokenHowever() {
+  return getPersistentTokenFromEnv() || await getPersistentTokenFromConfig();
+}
+
+async function getPersistentToken() {
+  const persistentToken = await getPersistentTokenHowever();
+  if (!persistentToken) throw new Error(`Persistent token unset. Save (${path.join(os.homedir(), '.config', 'snail', 'persistent-token')}) or set in environment (G_PERSISTENT_TOKEN)`);
+  return persistentToken;
 }
 
 async function boot() {
@@ -26,6 +41,10 @@ async function boot() {
 
 // project selection
 
+function getProjectDomainFromOpts(opts) {
+  return opts.project;
+}
+
 const remoteName = 'glitch';
 
 async function getProjectDomainFromRemote() {
@@ -34,6 +53,16 @@ async function getProjectDomainFromRemote() {
   const m = /https:\/\/(?:[\w-]+@)?api\.glitch\.com\/git\/([\w-]+)/.exec(remoteUrl);
   if (!m) return null;
   return m[1];
+}
+
+async function getProjectDomainHowever(opts) {
+  return getProjectDomainFromOpts(opts) || await getProjectDomainFromRemote();
+}
+
+async function getProjectDomain(opts) {
+  const domain = await getProjectDomainHowever(opts);
+  if (!domain) throw new Error('Unable to determine which project. Specify (-p) or set up remote (snail remote)');
+  return domain;
 }
 
 async function getProjectByDomain(domain) {
@@ -49,16 +78,18 @@ async function getProjectByDomain(domain) {
 
 // commands
 
-async function doRemote(domain) {
+async function doRemote(opts) {
+  const projectDomain = getProjectDomainFromOpts(opts);
+  if (!projectDomain) throw new Error('Unable to determine which project. Specify (-p)');
   const {user} = await boot();
-  const url = `https://${user.gitAccessToken}@api.glitch.com/git/${domain}`;
+  const url = `https://${user.gitAccessToken}@api.glitch.com/git/${projectDomain}`;
   await util.promisify(childProcess.execFile)('git', ['remote', 'add', remoteName, url]);
 }
 
-async function doSetenv(name, value) {
+async function doSetenv(name, value, opts) {
   const env = {};
   env[name] = value;
-  const res = await fetch(`https://api.glitch.com/projects/${await getProjectDomainFromRemote()}/setenv`, {
+  const res = await fetch(`https://api.glitch.com/projects/${await getProjectDomain(opts)}/setenv`, {
     method: 'POST',
     headers: {
       'Authorization': await getPersistentToken(),
@@ -69,8 +100,8 @@ async function doSetenv(name, value) {
   if (!res.ok) throw new Error(`Glitch setenv response ${res.status} not ok`);
 }
 
-async function doExec(command) {
-  const projectDomain = await getProjectDomainFromRemote();
+async function doExec(command, opts) {
+  const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
   const res = await fetch(`https://api.glitch.com/projects/${project.id}/exec`, {
     method: 'POST',
@@ -88,11 +119,11 @@ async function doExec(command) {
   process.stderr.write(body.stderr);
 }
 
-async function doTerm() {
+async function doTerm(opts) {
   const io = require('socket.io-client');
 
   const socket = io('https://api.glitch.com', {
-    path: `/${await getProjectDomainFromRemote()}/console/${await getPersistentToken()}/socket.io`,
+    path: `/${await getProjectDomain(opts)}/console/${await getPersistentToken()}/socket.io`,
   });
 
   function handleResize() {
@@ -143,7 +174,7 @@ async function doTPipe(command, opts) {
   let recvBuf = '';
 
   const socket = io('https://api.glitch.com', {
-    path: `/${await getProjectDomainFromRemote()}/console/${await getPersistentToken()}/socket.io`,
+    path: `/${await getProjectDomain(opts)}/console/${await getPersistentToken()}/socket.io`,
   });
 
   socket.on('disconnect', (reason) => {
@@ -206,10 +237,10 @@ async function doTPipe(command, opts) {
   });
 }
 
-async function doLogs() {
+async function doLogs(opts) {
   const WebSocket = require('ws');
 
-  const projectDomain = await getProjectDomainFromRemote();
+  const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
   const ws = new WebSocket(`wss://api.glitch.com/${project.id}/logs?authorization=${await getPersistentToken()}`);
   ws.on('open', () => {
@@ -232,8 +263,8 @@ async function doLogs() {
   });
 }
 
-async function doStop() {
-  const projectDomain = await getProjectDomainFromRemote();
+async function doStop(opts) {
+  const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
   const res = await fetch(`https://api.glitch.com/v1/projects/${project.id}/stop`, {
     method: 'POST',
@@ -244,8 +275,8 @@ async function doStop() {
   if (!res.ok) throw new Error(`Glitch stop response ${res.status} not ok`);
 }
 
-async function doAPolicy() {
-  const projectDomain = await getProjectDomainFromRemote();
+async function doAPolicy(opts) {
+  const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
   const res = await fetch(`https://api.glitch.com/v1/projects/${project.id}/policy`, {
     headers: {
@@ -260,7 +291,7 @@ async function doAPolicy() {
 async function doAPush(source, opts) {
   const FormData = require('form-data');
 
-  const projectDomain = await getProjectDomainFromRemote();
+  const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
   const policyRes = await fetch(`https://api.glitch.com/v1/projects/${project.id}/policy`, {
     headers: {
@@ -295,12 +326,12 @@ async function doAPush(source, opts) {
   console.log(`https://cdn.glitch.com/${encodeURIComponent(key)}?v=${Date.now()}`);
 }
 
-async function doWebEdit() {
-  console.log(`https://glitch.com/edit/#!/${await getProjectDomainFromRemote()}`);
+async function doWebEdit(opts) {
+  console.log(`https://glitch.com/edit/#!/${await getProjectDomain(opts)}`);
 }
 
 async function doWebTerm(opts) {
-  const projectDomain = await getProjectDomainFromRemote();
+  const projectDomain = await getProjectDomain(opts);
   if (opts.cap) {
     console.log(`https://api.glitch.com/${projectDomain}/console/${await getPersistentToken()}/`);
   } else {
@@ -311,12 +342,14 @@ async function doWebTerm(opts) {
 commander.program.name('snail');
 commander.program.version(package.version);
 commander.program
-  .command('remote <domain>')
+  .command('remote')
   .description('set up the glitch git remote')
+  .option('-p, --project <domain>', 'specify which project')
   .action(doRemote);
 commander.program
   .command('setenv <name> <value>')
   .description('set an environment variable')
+  .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
   .action(doSetenv);
 commander.program
   .command('exec <command...>')
@@ -328,10 +361,12 @@ No output is returned until the process exits.
 
 Implementation problems:
 Output is not printed when command fails.`)
+  .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
   .action(doExec);
 const cmdTerm = commander.program
   .command('term')
   .alias('t')
+  .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
   .description('connect to a project terminal')
   .action(doTerm);
 cmdTerm
@@ -351,15 +386,18 @@ memory when there is more data on stdout than the network can receive. Restart
 the project container with (snail stop) to reclaim memory from WeTTY. Data is
 transferred in base64 due to the terminal API supporting UTF-8 only, which is
 inefficient.`)
+  .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
   .option('--debug', 'show unrecognized lines from terminal session')
   .action(doTPipe);
 commander.program
   .command('logs')
   .description('watch application logs')
+  .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
   .action(doLogs);
 commander.program
   .command('stop')
   .description('stop project container')
+  .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
   .action(doStop);
 const cmdAsset = commander.program
   .command('asset')
@@ -368,6 +406,7 @@ const cmdAsset = commander.program
 cmdAsset
   .command('policy')
   .description('provision an S3 POST policy for asset upload')
+  .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
   .action(doAPolicy);
 cmdAsset
   .command('push <source>')
@@ -375,6 +414,7 @@ cmdAsset
   .addHelpText('after', `
 Implementation problems:
 Does not maintain .glitch-assets.`)
+  .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
   .option('-n, --name <name>', 'destination filename (taken from source if not set)')
   .option('-t, --type <type>', 'asset MIME type', 'application/octet-stream')
   .option('-a, --max-age <age_seconds>', 'max-age for Cache-Control', 31536000)
@@ -385,10 +425,12 @@ const cmdWeb = commander.program
 cmdWeb
   .command('edit')
   .description('display editor URL')
+  .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
   .action(doWebEdit);
 cmdWeb
   .command('term')
   .description('display terminal URL')
+  .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
   .option('-c, --cap', 'display inner URL with persistent token')
   .action(doWebTerm);
 commander.program.parseAsync(process.argv).catch((e) => {
