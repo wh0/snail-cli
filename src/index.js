@@ -146,6 +146,9 @@ async function doTerm(opts) {
       process.stdin.setRawMode(true);
     }
     handleResize();
+    if (opts.c) {
+      socket.emit('input', opts.c.join(' ') + '\n');
+    }
   });
   socket.on('logout', () => {
     process.exit(0);
@@ -370,6 +373,7 @@ const cmdTerm = commander.program
   .command('term')
   .alias('t')
   .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
+  .option('-c <command...>', 'send initial command')
   .option('--no-raw', 'do not alter stdin tty mode')
   .description('connect to a project terminal')
   .action(doTerm);
