@@ -7,7 +7,7 @@ const util = require('util');
 const commander = require('commander');
 const fetch = require('node-fetch').default;
 
-const package = require('../package.json');
+const packageMeta = require('../package.json');
 
 // credentials
 
@@ -342,7 +342,7 @@ async function doWebTerm(opts) {
 }
 
 commander.program.name('snail');
-commander.program.version(package.version);
+commander.program.version(packageMeta.version);
 commander.program
   .command('remote')
   .description('set up the glitch git remote')
