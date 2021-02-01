@@ -252,7 +252,7 @@ async function doLogs(opts) {
   });
   ws.on('message', (data) => {
     const msg = JSON.parse(data);
-    if (msg.process == 'application') {
+    if (msg.process === 'application') {
       console.log(msg.text);
     }
   });
