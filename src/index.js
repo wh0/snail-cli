@@ -345,6 +345,24 @@ async function doWebTerm(opts) {
   }
 }
 
+async function doWebDebugger(opts) {
+  const projectDomain = await getProjectDomain(opts);
+  const project = await getProjectByDomain(projectDomain);
+  if (opts.cap) {
+    const res = await fetch(`https://api.glitch.com/v1/projects/${project.id}/singlePurposeTokens/devtools`, {
+      method: 'POST',
+      headers: {
+        'Authorization': await getPersistentToken(),
+      },
+    });
+    if (!res.ok) throw new Error(`Glitch single purpose tokens devtools response ${res.status} not ok`);
+    const body = await res.json();
+    console.log(`devtools://devtools/bundled/inspector.html?ws=api.glitch.com:80/project/debugger/${body.token}`);
+  } else {
+    console.log(`https://glitch.com/edit/debugger.html?${project.id}`);
+  }
+}
+
 commander.program.name('snail');
 commander.program.version(packageMeta.version);
 commander.program
@@ -441,6 +459,16 @@ cmdWeb
   .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
   .option('-c, --cap', 'display inner URL with persistent token')
   .action(doWebTerm);
+cmdWeb
+  .command('debugger')
+  .description('display debugger URL')
+  .addHelpText('after', `
+Implementation problems:
+Does not set GLITCH_DEBUGGER. Do that yourself (snail setenv GLITCH_DEBUGGER
+true).`)
+  .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
+  .option('-c, --cap', 'display devtool URL with debugger token')
+  .action(doWebDebugger);
 commander.program.parseAsync(process.argv).catch((e) => {
   console.error(e);
   process.exit(1);
