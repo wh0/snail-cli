@@ -74,6 +74,7 @@ async function getProjectByDomain(domain) {
   });
   if (!res.ok) throw new Error(`Glitch projects by domain response ${res.status} not ok`);
   const body = await res.json();
+  if (!(domain in body)) throw new Error(`Glitch project domain ${domain} not found`);
   return body[domain];
 }
 
