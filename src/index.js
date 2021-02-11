@@ -135,14 +135,14 @@ async function doTerm(opts) {
     });
   }
 
-  socket.on('disconnect', (reason) => {
+  socket.once('disconnect', (reason) => {
     console.error(`Glitch console disconnected: ${reason}`);
     process.exit(1);
   });
   socket.on('error', (e) => {
     console.error(e);
   });
-  socket.on('login', () => {
+  socket.once('login', () => {
     if (opts.raw) {
       process.stdin.setRawMode(true);
     }
@@ -150,17 +150,16 @@ async function doTerm(opts) {
     if (opts.c) {
       socket.emit('input', opts.c.join(' ') + '\n');
     }
+    process.stdout.on('resize', handleResize);
+    process.stdin.on('data', (data) => {
+      socket.emit('input', data);
+    });
   });
-  socket.on('logout', () => {
+  socket.once('logout', () => {
     process.exit(0);
   });
   socket.on('data', (data) => {
     process.stdout.write(data);
-  });
-
-  process.stdout.on('resize', handleResize);
-  process.stdin.on('data', (data) => {
-    socket.emit('input', data);
   });
 }
 
@@ -184,10 +183,9 @@ async function doTPipe(command, opts) {
     path: `/${await getProjectDomain(opts)}/console/${await getPersistentToken()}/socket.io`,
   });
 
-  socket.on('disconnect', (reason) => {
-    if (!returned) {
-      throw new Error(`Glitch console disconnected: ${reason}`);
-    }
+  socket.once('disconnect', (reason) => {
+    console.error(`Glitch console disconnected: ${reason}`);
+    process.exit(1);
   });
   socket.on('error', (e) => {
     console.error(e);
