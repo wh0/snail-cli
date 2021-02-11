@@ -136,7 +136,7 @@ async function doTerm(opts) {
   }
 
   socket.on('disconnect', (reason) => {
-    console.error(`Socket disconnected: ${reason}`);
+    console.error(`Glitch console disconnected: ${reason}`);
     process.exit(1);
   });
   socket.on('error', (e) => {
@@ -186,7 +186,7 @@ async function doTPipe(command, opts) {
 
   socket.on('disconnect', (reason) => {
     if (!returned) {
-      throw new Error(`Socket disconnected: ${reason}`);
+      throw new Error(`Glitch console disconnected: ${reason}`);
     }
   });
   socket.on('error', (e) => {
@@ -265,7 +265,7 @@ async function doLogs(opts) {
     console.error(e);
   });
   ws.on('close', (code, reason) => {
-    console.error('web socket closed', code, reason);
+    console.error(`Glitch logs closed: ${code} ${reason}`);
     process.exit(1);
   });
 }
