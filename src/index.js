@@ -124,6 +124,7 @@ async function doExec(command, opts) {
 async function doTerm(opts) {
   const io = require('socket.io-client');
 
+  let done = false;
   const socket = io('https://api.glitch.com', {
     path: `/${await getProjectDomain(opts)}/console/${await getPersistentToken()}/socket.io`,
   });
@@ -136,8 +137,10 @@ async function doTerm(opts) {
   }
 
   socket.once('disconnect', (reason) => {
-    console.error(`Glitch console disconnected: ${reason}`);
-    process.exit(1);
+    if (!done || reason !== 'io client disconnect') {
+      console.error(`Glitch console disconnected: ${reason}`);
+      process.exit(1);
+    }
   });
   socket.on('error', (e) => {
     console.error(e);
@@ -156,7 +159,9 @@ async function doTerm(opts) {
     });
   });
   socket.once('logout', () => {
-    process.exit(0);
+    done = true;
+    process.stdin.pause();
+    socket.close();
   });
   socket.on('data', (data) => {
     process.stdout.write(data);
@@ -179,13 +184,16 @@ async function doTPipe(command, opts) {
   let returned = false;
   let recvBuf = '';
 
+  let done = false;
   const socket = io('https://api.glitch.com', {
     path: `/${await getProjectDomain(opts)}/console/${await getPersistentToken()}/socket.io`,
   });
 
   socket.once('disconnect', (reason) => {
-    console.error(`Glitch console disconnected: ${reason}`);
-    process.exit(1);
+    if (!done || reason !== 'io client disconnect') {
+      console.error(`Glitch console disconnected: ${reason}`);
+      process.exit(1);
+    }
   });
   socket.on('error', (e) => {
     console.error(e);
@@ -228,7 +236,8 @@ async function doTPipe(command, opts) {
         case 'r':
           if (returned) break;
           returned = true;
-          process.exit(+part.slice(1));
+          process.stdin.pause();
+          process.exitCode = +part.slice(1);
           break;
         default:
           if (opts.debug) {
@@ -239,6 +248,10 @@ async function doTPipe(command, opts) {
   });
   socket.once('login', () => {
     socket.emit('input', `unset HISTFILE && exec /opt/nvm/versions/node/v10/bin/node -e ${shellWord(WRAPPER_SRC)} ${shellWord(command.join(' '))}\n`);
+  });
+  socket.once('logout', () => {
+    done = true;
+    socket.close();
   });
 }
 
