@@ -78,6 +78,90 @@ async function getProjectByDomain(domain) {
   return body[domain];
 }
 
+// ot
+
+class OtClient {
+
+  constructor(ws, opts) {
+    this.ws = ws;
+    this.opts = opts;
+    this.promised = {};
+    this.requested = {};
+    this.ws.on('message', (data) => {
+      const msg = JSON.parse(data);
+      if (this.opts.debug) {
+        console.error('<', msg);
+      }
+      switch (msg.type) {
+        case 'register-document':
+          const doc = msg.document;
+          const children = doc.children;
+          doc.children = {};
+          for (const k in children) {
+            doc.children[k] = children[k].docId;
+          }
+          const {resolve, reject} = this.requested[doc.docId];
+          delete this.requested[doc.docId];
+          resolve(doc);
+          break;
+      }
+    });
+  }
+
+  async fetchDoc(docId) {
+    if (!(docId in this.promised)) {
+      this.promised[docId] = new Promise((resolve, reject) => {
+        this.requested[docId] = {resolve, reject};
+        const msg = {
+          type: 'register-document',
+          docId: docId,
+        };
+        if (this.opts.debug) {
+          console.log('>', msg);
+        }
+        this.ws.send(JSON.stringify(msg));
+      });
+    }
+    return this.promised[docId];
+  }
+
+  async resolvePath(names) {
+    const root = await this.fetchDoc('root');
+    let doc = await this.fetchDoc(root.children['.']);
+    const from = [];
+    for (const name of names) {
+      if (doc.docType !== 'directory') throw new Error(`document ${doc.docId} (reached from ./${from.join('/')}) is not a directory`);
+      if (name === '' || name === '.') continue;
+      if (!(name in doc.children)) throw new Error(`${name} not found in document ${doc.docId} (reached from ./${from.join('/')})`);
+      doc = await this.fetchDoc(doc.children[name]);
+      from.push(name);
+    }
+    return doc;
+  }
+
+}
+
+// file utilities
+
+async function guessSingleDestination(dst, name) {
+  if (dst.endsWith(path.sep) || dst.endsWith(path.posix.sep)) return dst + name;
+  let dstStats = null;
+  try {
+    dstStats = await fs.promises.stat(dst);
+  } catch (e) {
+    if ('code' in e && e.code === 'ENOENT') {
+      return dst;
+    } else {
+      throw e;
+    }
+  }
+  if (dstStats.isDirectory()) {
+    return path.join(dst, name);
+  } else {
+    return dst;
+  }
+}
+
 // commands
 
 async function doRemote(opts) {
@@ -344,6 +428,65 @@ async function doAPush(source, opts) {
   console.log(`https://cdn.glitch.com/${encodeURIComponent(key)}?v=${Date.now()}`);
 }
 
+async function doOtPull(src, dst, opts) {
+  const WebSocket = require('ws');
+
+  const projectDomain = await getProjectDomain(opts);
+  const project = await getProjectByDomain(projectDomain);
+
+  const srcNames = src.split('/');
+  if (dst !== '-') {
+    dst = await guessSingleDestination(dst, srcNames[srcNames.length - 1]);
+  }
+
+  let done = false;
+  const ws = new WebSocket(`wss://api.glitch.com/${project.id}/ot?authorization=${await getPersistentToken()}`);
+  const c = new OtClient(ws, opts);
+  ws.on('error', (e) => {
+    console.error(e);
+  });
+  ws.on('close', (code, reason) => {
+    if (!done || code !== 1000) {
+      console.error(`Glitch OT closed: ${code} ${reason}`);
+      process.exit(1);
+    }
+  });
+  ws.on('open', () => {
+    if (opts.debug) {
+      console.error('* open');
+    }
+    (async () => {
+      try {
+        const doc = await c.resolvePath(srcNames);
+        if (opts.debug) {
+          console.error('* resolved', doc.docId);
+        }
+
+        done = true;
+        ws.close();
+
+        if (doc.docType === 'directory') throw new Error(`${src} is a directory`);
+        if ('base64Content' in doc) {
+          if (dst === '-') {
+            process.stdout.write(doc.base64Content, 'base64');
+          } else {
+            await fs.promises.writeFile(dst, doc.base64Content, 'base64');
+          }
+        } else {
+          if (dst === '-') {
+            process.stdout.write(doc.content);
+          } else {
+            await fs.promises.writeFile(dst, doc.content);
+          }
+        }
+      } catch (e) {
+        console.error(e);
+        process.exit(1);
+      }
+    })();
+  });
+}
+
 async function doWebEdit(opts) {
   console.log(`https://glitch.com/edit/#!/${await getProjectDomain(opts)}`);
 }
@@ -457,6 +600,17 @@ Does not maintain .glitch-assets.`)
   .option('-t, --type <type>', 'asset MIME type', 'application/octet-stream')
   .option('-a, --max-age <age_seconds>', 'max-age for Cache-Control', 31536000)
   .action(doAPush);
+const cmdOt = commander.program
+  .command('ot')
+  .description('interact over OT');
+cmdOt
+  .command('pull <src> <dst>')
+  .description('transfer project file src to local file dst')
+  .addHelpText('after', `
+Pass - as dst to write to stdout.`)
+  .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
+  .option('--debug', 'show OT messages')
+  .action(doOtPull);
 const cmdWeb = commander.program
   .command('web')
   .description('display web URLs');
