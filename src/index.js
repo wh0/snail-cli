@@ -1,5 +1,6 @@
 'use strict';
 const childProcess = require('child_process');
+const crypto = require('crypto');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
@@ -80,65 +81,176 @@ async function getProjectByDomain(domain) {
 
 // ot
 
+function otNewId() {
+  return crypto.randomBytes(6).toString('hex');
+}
+
 class OtClient {
 
   constructor(ws, opts) {
     this.ws = ws;
     this.opts = opts;
-    this.promised = {};
-    this.requested = {};
+    this.clientId = null;
+    this.version = null;
+    this.masterPromised = null;
+    this.masterRequested = null;
+    this.docPromised = {};
+    this.docRequested = {};
+    this.opListRequested = {};
     this.ws.on('message', (data) => {
       const msg = JSON.parse(data);
       if (this.opts.debug) {
-        console.error('<', msg);
+        console.error('<', util.inspect(msg, {depth: null, colors: true}));
       }
       switch (msg.type) {
-        case 'register-document':
+        case 'master-state': {
+          this.version = msg.state.version;
+          const {resolve, reject} = this.masterRequested;
+          this.masterRequested = null;
+          resolve(msg);
+          break;
+        }
+        case 'register-document': {
           const doc = msg.document;
           const children = doc.children;
           doc.children = {};
           for (const k in children) {
             doc.children[k] = children[k].docId;
           }
-          const {resolve, reject} = this.requested[doc.docId];
-          delete this.requested[doc.docId];
+          const {resolve, reject} = this.docRequested[doc.docId];
+          delete this.docRequested[doc.docId];
           resolve(doc);
           break;
+        }
+        case 'accepted-oplist': {
+          const opList = msg.opList;
+          const {resolve, reject} = this.opListRequested[opList.id];
+          delete this.opListRequested[opList.id];
+          this.version = opList.version + 1;
+          resolve();
+          break;
+        }
+        case 'rejected-oplist': {
+          const opList = msg.opList;
+          const {resolve, reject} = this.opListRequested[opList.id];
+          delete this.opListRequested[opList.id];
+          reject(new Error(`oplist ${opList.id} rejected`));
+          break;
+        }
       }
     });
   }
 
-  async fetchDoc(docId) {
-    if (!(docId in this.promised)) {
-      this.promised[docId] = new Promise((resolve, reject) => {
-        this.requested[docId] = {resolve, reject};
-        const msg = {
-          type: 'register-document',
-          docId: docId,
-        };
-        if (this.opts.debug) {
-          console.log('>', msg);
-        }
-        this.ws.send(JSON.stringify(msg));
+  send(msg) {
+    if (this.opts.debug) {
+      console.error('>', util.inspect(msg, {depth: null, colors: true}));
+    }
+    this.ws.send(JSON.stringify(msg));
+  }
+
+  fetchMaster() {
+    if (!this.masterPromised) {
+      this.clientId = otNewId();
+      this.masterPromised = new Promise((resolve, reject) => {
+        this.masterRequested = {resolve, reject};
+        this.send({
+          type: 'master-state',
+          clientId: this.clientId,
+          // the editor also sends `force: true`
+        });
       });
     }
-    return this.promised[docId];
+    return this.masterPromised;
   }
 
-  async resolvePath(names) {
-    const root = await this.fetchDoc('root');
-    let doc = await this.fetchDoc(root.children['.']);
-    const from = [];
-    for (const name of names) {
-      if (doc.docType !== 'directory') throw new Error(`document ${doc.docId} (reached from ./${from.join('/')}) is not a directory`);
-      if (name === '' || name === '.') continue;
-      if (!(name in doc.children)) throw new Error(`${name} not found in document ${doc.docId} (reached from ./${from.join('/')})`);
-      doc = await this.fetchDoc(doc.children[name]);
-      from.push(name);
+  fetchDoc(docId) {
+    if (!(docId in this.docPromised)) {
+      this.docPromised[docId] = new Promise((resolve, reject) => {
+        this.docRequested[docId] = {resolve, reject};
+        this.send({
+          type: 'register-document',
+          docId: docId,
+        });
+      });
     }
-    return doc;
+    return this.docPromised[docId];
   }
 
+  broadcastOps(ops) {
+    const id = otNewId();
+    return new Promise((resolve, reject) => {
+      this.opListRequested[id] = {resolve, reject};
+      this.send({
+        type: 'client-oplist',
+        opList: {
+          id,
+          version: this.version,
+          ops,
+        },
+      });
+    });
+  }
+
+}
+
+function otRequireDir(doc) {
+  if (doc.docType !== 'directory') throw new Error(`document ${doc.docId} is not a directory`);
+}
+
+function otRequireNotDir(doc) {
+  if (doc.docType === 'directory') throw new Error(`document ${doc.docId} is a directory`);
+}
+
+async function otFetchDot(c) {
+  const root = await c.fetchDoc('root');
+  return await c.fetchDoc(root.children['.']);
+}
+
+async function otResolveExisting(c, names) {
+  let doc = await otFetchDot(c);
+  for (const name of names) {
+    otRequireDir(doc);
+    if (name === '' || name === '.') continue;
+    if (!(name in doc.children)) throw new Error(`${name} not found in document ${doc.docId}`);
+    doc = await c.fetchDoc(doc.children[name]);
+  }
+  return doc;
+}
+
+async function otResolveOrCreateParents(c, ops, names, fallbackName) {
+  let doc = await otFetchDot(c);
+  let docIndex = 0;
+
+  for (; docIndex < names.length; docIndex++) {
+    otRequireDir(doc);
+    const name = names[docIndex];
+    if (name === '' || name === '.') continue;
+    if (!(name in doc.children)) break;
+    doc = await c.fetchDoc(doc.children[name]);
+  }
+
+  for (; docIndex < names.length  - 1; docIndex++) {
+    doc = {
+      name: names[docIndex],
+      docId: otNewId(),
+      docType: 'directory',
+      parentId: doc.docId,
+    };
+    ops.push({type: 'add', ...doc});
+    doc.children = {};
+  }
+
+  if (doc.docType === 'directory') {
+    const name = docIndex < names.length && names[docIndex] || fallbackName;
+    if (name && name in doc.children) {
+      doc = await c.fetchDoc(doc.children[name]);
+      return {existing: doc};
+    } else {
+      return {parent: doc, name};
+    }
+  } else {
+    return {existing: doc};
+  }
 }
 
 // file utilities
@@ -428,6 +540,116 @@ async function doAPush(source, opts) {
   console.log(`https://cdn.glitch.com/${encodeURIComponent(key)}?v=${Date.now()}`);
 }
 
+async function doOtPush(src, dst, opts) {
+  const WebSocket = require('ws');
+
+  const projectDomain = await getProjectDomain(opts);
+  const project = await getProjectByDomain(projectDomain);
+
+  const dstNames = dst.split('/');
+  let srcBasename;
+  let content;
+  if (src === '-') {
+    srcBasename = null;
+    content = await new Promise((resolve, reject) => {
+      let buf = '';
+      process.stdin.setEncoding('utf8');
+      process.stdin.on('data', (chunk) => {
+        buf += chunk;
+      });
+      process.stdin.on('end', () => {
+        resolve(buf);
+      });
+    });
+  } else {
+    srcBasename = path.basename(src);
+    content = await fs.promises.readFile(src, 'utf8');
+  }
+
+  let done = false;
+  const ws = new WebSocket(`wss://api.glitch.com/${project.id}/ot?authorization=${await getPersistentToken()}`);
+  const c = new OtClient(ws, opts);
+  ws.on('error', (e) => {
+    console.error(e);
+  });
+  ws.on('close', (code, reason) => {
+    if (!done || code !== 1000) {
+      console.error(`Glitch OT closed: ${code} ${reason}`);
+      process.exit(1);
+    }
+  });
+  ws.on('open', () => {
+    if (opts.debug) {
+      console.error('* open');
+    }
+    (async () => {
+      try {
+        const ops = [];
+        const dstAccess = await otResolveOrCreateParents(c, ops, dstNames, srcBasename);
+        if ('existing' in dstAccess) {
+          otRequireNotDir(dstAccess.existing);
+          if ('base64Content' in dstAccess.existing) {
+            ops.push({
+              type: 'unlink',
+              docId: dstAccess.existing.docId,
+            });
+            const doc = {
+              name: dstAccess.existing.name,
+              docId: otNewId(),
+              docType: 'file',
+              parentId: dstAccess.existing.parentId,
+            };
+            ops.push({type: 'add', ...doc});
+            ops.push({
+              type: 'insert',
+              docId: doc.docId,
+              position: 0,
+              text: content,
+            });
+          } else {
+            ops.push({
+              type: 'remove',
+              docId: dstAccess.existing.docId,
+              position: 0,
+              text: dstAccess.existing.content,
+            });
+            ops.push({
+              type: 'insert',
+              docId: dstAccess.existing.docId,
+              position: 0,
+              text: content,
+            });
+          }
+        } else {
+          if (!dstAccess.name) throw new Error('Need explicit dst filename to push from stdin');
+          const doc = {
+            name: dstAccess.name,
+            docId: otNewId(),
+            docType: 'file',
+            parentId: dstAccess.parent.docId,
+          };
+          ops.push({type: 'add', ...doc});
+          ops.push({
+            type: 'insert',
+            docId: doc.docId,
+            position: 0,
+            text: content,
+          });
+        }
+
+        await c.fetchMaster();
+        await c.broadcastOps(ops);
+
+        done = true;
+        ws.close();
+      } catch (e) {
+        console.error(e);
+        process.exit(1);
+      }
+    })();
+  });
+}
+
 async function doOtPull(src, dst, opts) {
   const WebSocket = require('ws');
 
@@ -457,15 +679,12 @@ async function doOtPull(src, dst, opts) {
     }
     (async () => {
       try {
-        const doc = await c.resolvePath(srcNames);
-        if (opts.debug) {
-          console.error('* resolved', doc.docId);
-        }
+        const doc = await otResolveExisting(c, srcNames);
 
         done = true;
         ws.close();
 
-        if (doc.docType === 'directory') throw new Error(`${src} is a directory`);
+        otRequireNotDir(doc);
         if ('base64Content' in doc) {
           if (dst === '-') {
             process.stdout.write(doc.base64Content, 'base64');
@@ -603,6 +822,14 @@ Does not maintain .glitch-assets.`)
 const cmdOt = commander.program
   .command('ot')
   .description('interact over OT');
+cmdOt
+  .command('push <src> <dst>')
+  .description('transfer local file src to project file dst')
+  .addHelpText('after', `
+Pass - as src to read from stdin.`)
+  .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
+  .option('--debug', 'show OT messages')
+  .action(doOtPush);
 cmdOt
   .command('pull <src> <dst>')
   .description('transfer project file src to local file dst')
