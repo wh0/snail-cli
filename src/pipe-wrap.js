@@ -5,7 +5,7 @@ const childProcess = require('child_process');
 process.stdin.setRawMode(true);
 process.stdout.write('s\n');
 
-setInterval(() => {
+const pingTimer = setInterval(() => {
   process.stdout.write('p\n');
 }, 4000);
 
@@ -45,5 +45,6 @@ p.stderr.on('end', () => {
 p.on('exit', (code, signal) => {
   const rv = signal === null ? code : 1;
   process.stdout.write('r' + rv + '\n');
-  process.exit();
+  clearTimeout(pingTimer);
+  process.stdin.pause();
 });
