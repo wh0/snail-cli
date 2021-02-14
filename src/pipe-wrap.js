@@ -1,50 +1,60 @@
 // minify this file for `doTPipe`
 
-const childProcess = require('child_process');
+var base64 = 'base64';
+var data = 'data';
+var end = 'end';
+var nl = '\n';
 
-process.stdin.setRawMode(true);
-process.stdout.write('s\n');
+var processAlias = process;
+var {stdin: processStdin, stdout: processStdout} = processAlias;
+var processStdoutWrite = processStdout.write.bind(processStdout);
 
-const pingTimer = setInterval(() => {
-  process.stdout.write('p\n');
-}, 4000);
-
-const p = childProcess.spawn(process.argv[1], {
+var childProcess = require('child_process');
+var child = childProcess.spawn(processAlias.argv[1], {
   stdio: 'pipe',
   shell: true,
 });
+var {stdin: childStdin, stdout: childStdout, stderr: childStderr} = child;
 
-let stdinBuf = '';
-process.stdin.setEncoding('ascii');
-process.stdin.on('data', (chunk) => {
-  const parts = (stdinBuf + chunk).split('\n');
+var pingTimer = setInterval(() => {
+  processStdoutWrite('p\n');
+}, 4000);
+
+var stdinBuf = '';
+
+processStdin.setRawMode(true);
+processStdin.setEncoding('ascii');
+processStdin.on(data, (chunk) => {
+  var parts = (stdinBuf + chunk).split(nl);
   stdinBuf = parts.pop();
-  for (const part of parts) {
+  for (var part of parts) {
     if (part) {
-      p.stdin.write(Buffer.from(part, 'base64'));
+      childStdin.write(Buffer.from(part, base64));
     } else {
-      p.stdin.end();
+      childStdin.end();
     }
   }
 });
 
-p.stdout.on('data', (chunk) => {
-  process.stdout.write('o' + chunk.toString('base64') + '\n');
+processStdoutWrite('s\n');
+
+childStdout.on(data, (chunk) => {
+  processStdoutWrite('o' + chunk.toString(base64) + nl);
 });
-p.stdout.on('end', () => {
-  process.stdout.write('O\n');
+childStdout.on(end, () => {
+  processStdoutWrite('O\n');
 });
 
-p.stderr.on('data', (chunk) => {
-  process.stdout.write('e' + chunk.toString('base64') + '\n');
+childStderr.on(data, (chunk) => {
+  processStdoutWrite('e' + chunk.toString(base64) + nl);
 });
-p.stderr.on('end', () => {
-  process.stdout.write('E\n');
+childStderr.on(end, () => {
+  processStdoutWrite('E\n');
 });
 
-p.on('exit', (code, signal) => {
-  const rv = signal === null ? code : 1;
-  process.stdout.write('r' + rv + '\n');
+child.on('exit', (code, signal) => {
+  var rv = signal ? 1 : code;
+  processStdoutWrite('r' + rv + nl);
   clearTimeout(pingTimer);
-  process.stdin.pause();
+  processStdin.pause();
 });
