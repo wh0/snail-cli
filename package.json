@@ -12,15 +12,15 @@
     "start": "cd dist && python3 -m http.server"
   },
   "dependencies": {
-    "commander": "^7.0.0",
-    "form-data": "^3.0.0",
+    "commander": "^7.1.0",
+    "form-data": "^4.0.0",
     "node-fetch": "^2.6.1",
     "socket.io-client": "^2.4.0",
-    "ws": "^7.4.2"
+    "ws": "^7.4.3"
   },
   "devDependencies": {
     "terser": "^5.6.0",
-    "webpack": "^5.21.0",
+    "webpack": "^5.24.2",
     "webpack-cli": "^4.5.0"
   },
   "engines": {
