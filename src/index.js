@@ -714,6 +714,117 @@ async function doOtPull(src, dst, opts) {
   });
 }
 
+async function doOtMv(src, dst, opts) {
+  const WebSocket = require('ws');
+
+  const projectDomain = await getProjectDomain(opts);
+  const project = await getProjectByDomain(projectDomain);
+
+  const srcNames = src.split('/');
+  const srcBasename = path.posix.basename(src);
+  if (srcBasename === '' || srcBasename === '.' || srcBasename === '..') throw new Error('Invalid src basename');
+  const dstNames = dst.split('/');
+
+  let done = false;
+  const ws = new WebSocket(`wss://api.glitch.com/${project.id}/ot?authorization=${await getPersistentToken()}`);
+  const c = new OtClient(ws, opts);
+  ws.on('error', (e) => {
+    console.error(e);
+  });
+  ws.on('close', (code, reason) => {
+    if (!done || code !== 1000) {
+      console.error(`Glitch OT closed: ${code} ${reason}`);
+      process.exit(1);
+    }
+  });
+  ws.on('open', () => {
+    if (opts.debug) {
+      console.error('* open');
+    }
+    (async () => {
+      try {
+        const doc = await otResolveExisting(c, srcNames);
+
+        const ops = [];
+        const dstAccess = await otResolveOrCreateParents(c, ops, dstNames, srcBasename);
+        if ('existing' in dstAccess) {
+          otRequireNotDir(doc);
+          otRequireNotDir(dstAccess.existing);
+          ops.push({
+            type: 'rename',
+            docId: doc.docId,
+            newName: dstAccess.existing.name,
+            newParentId: dstAccess.existing.parentId,
+          });
+        } else {
+          ops.push({
+            type: 'rename',
+            docId: doc.docId,
+            newName: dstAccess.name,
+            newParentId: dstAccess.parent.docId,
+          });
+        }
+
+        await c.fetchMaster();
+        await c.broadcastOps(ops);
+
+        done = true;
+        ws.close();
+      } catch (e) {
+        console.error(e);
+        process.exit(1);
+      }
+    })();
+  });
+}
+
+async function doOtRm(path, opts) {
+  const WebSocket = require('ws');
+
+  const projectDomain = await getProjectDomain(opts);
+  const project = await getProjectByDomain(projectDomain);
+
+  const names = path.split('/');
+
+  let done = false;
+  const ws = new WebSocket(`wss://api.glitch.com/${project.id}/ot?authorization=${await getPersistentToken()}`);
+  const c = new OtClient(ws, opts);
+  ws.on('error', (e) => {
+    console.error(e);
+  });
+  ws.on('close', (code, reason) => {
+    if (!done || code !== 1000) {
+      console.error(`Glitch OT closed: ${code} ${reason}`);
+      process.exit(1);
+    }
+  });
+  ws.on('open', () => {
+    if (opts.debug) {
+      console.error('* open');
+    }
+    (async () => {
+      try {
+        const doc = await otResolveExisting(c, names);
+
+        const ops = [];
+        ops.push({
+          type: 'unlink',
+          docId: doc.docId,
+        });
+
+        await c.fetchMaster();
+        await c.broadcastOps(ops);
+
+        done = true;
+        ws.close();
+      } catch (e) {
+        console.error(e);
+        process.exit(1);
+      }
+    })();
+  });
+}
+
 async function doWebEdit(opts) {
   console.log(`https://glitch.com/edit/#!/${await getProjectDomain(opts)}`);
 }
@@ -846,6 +957,18 @@ Pass - as dst to write to stdout.`)
   .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
   .option('--debug', 'show OT messages')
   .action(doOtPull);
+cmdOt
+  .command('mv <src> <dst>')
+  .description('move or rename a document')
+  .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
+  .option('--debug', 'show OT messages')
+  .action(doOtMv);
+cmdOt
+  .command('rm <path>')
+  .description('unlink a document')
+  .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
+  .option('--debug', 'show OT messages')
+  .action(doOtRm);
 const cmdWeb = commander.program
   .command('web')
   .description('display web URLs');
