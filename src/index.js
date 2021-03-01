@@ -825,6 +825,50 @@ async function doOtRm(path, opts) {
   });
 }
 
+async function doOtLs(path, opts) {
+  const WebSocket = require('ws');
+
+  const projectDomain = await getProjectDomain(opts);
+  const project = await getProjectByDomain(projectDomain);
+
+  const names = path.split('/');
+
+  let done = false;
+  const ws = new WebSocket(`wss://api.glitch.com/${project.id}/ot?authorization=${await getPersistentToken()}`);
+  const c = new OtClient(ws, opts);
+  ws.on('error', (e) => {
+    console.error(e);
+  });
+  ws.on('close', (code, reason) => {
+    if (!done || code !== 1000) {
+      console.error(`Glitch OT closed: ${code} ${reason}`);
+      process.exit(1);
+    }
+  });
+  ws.on('open', () => {
+    if (opts.debug) {
+      console.error('* open');
+    }
+    (async () => {
+      try {
+        const doc = await otResolveExisting(c, names);
+
+        done = true;
+        ws.close();
+
+        otRequireDir(doc);
+        for (const name in doc.children) {
+          console.log(name);
+        }
+      } catch (e) {
+        console.error(e);
+        process.exit(1);
+      }
+    })();
+  });
+}
+
+
 async function doWebEdit(opts) {
   console.log(`https://glitch.com/edit/#!/${await getProjectDomain(opts)}`);
 }
@@ -969,6 +1013,12 @@ cmdOt
   .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
   .option('--debug', 'show OT messages')
   .action(doOtRm);
+cmdOt
+  .command('ls <path>')
+  .description('list a document\'s children')
+  .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
+  .option('--debug', 'show OT messages')
+  .action(doOtLs);
 const cmdWeb = commander.program
   .command('web')
   .description('display web URLs');
