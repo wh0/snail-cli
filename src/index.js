@@ -311,10 +311,18 @@ async function doExec(command, opts) {
       command: command.join(' '),
     }),
   });
-  if (!res.ok) throw new Error(`Glitch exec response ${res.status} not ok`);
-  const body = await res.json();
-  process.stdout.write(body.stdout);
-  process.stderr.write(body.stderr);
+  if (res.ok) {
+    const body = await res.json();
+    process.stdout.write(body.stdout);
+    process.stderr.write(body.stderr);
+  } else if (res.status === 500) {
+    const body = await res.json();
+    process.stdout.write(body.stdout);
+    process.stderr.write(body.stderr);
+    process.exitCode = body.signal || body.code;
+  } else {
+    throw new Error(`Glitch exec response ${res.status} not ok`);
+  }
 }
 
 async function doTerm(opts) {
