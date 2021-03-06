@@ -1,0 +1,57 @@
+// in-editor flow
+
+// request invite
+(inside ot)
+> {"type":"broadcast","payload":{"user":{"avatarUrl":null,"avatarThumbnailUrl":null,"awaitingInvite":true,"id":29281147,"name":null,"login":null,"color":"#6ed7f4","lastCursor":{"cursor":{"line":0,"ch":0,"sticky":null},"documentId":"19847bdfc957","clientId":"QZWEsRIxgbAZlXDr"},"readOnly":null,"thanksReceived":false,"tabId":"32662","teams":[]}}}
+// notably: `payload.user.awaitingInvite`, `payload.user.id`
+
+// invite
+POST https://api.glitch.com/project_permissions/8e6cdc77-20b9-4209-850f-d2607eeae33a
+> {"userId":29281147,"projectId":"8e6cdc77-20b9-4209-850f-d2607eeae33a","accessLevel":20}
+< null
+
+// after that,
+// (1) inviter broadcasts the invitee's user with `invited: true`
+// (2) invitee broadcasts itself with `awaitingInvite: false`
+
+(inside ot)
+< {"type":"broadcast","payload":{"user":{"avatarUrl":null,"avatarThumbnailUrl":null,"awaitingInvite":false,"id":29281147,"name":null,"login":null,"color":"#6ed7f4","lastCursor":{"cursor":{"line":0,"ch":0,"sticky":null},"documentId":"19847bdfc957","clientId":"BkXYb6c5CO39geaR"},"thanksReceived":false,"tabId":"57200","teams":[],"left":true}}}
+// notably: `payload.user.left`
+
+// leave, same as kick
+DELETE https://api.glitch.com/v1/projects/8e6cdc77-20b9-4209-850f-d2607eeae33a/users/29281147
+> (nothing)
+< "OK"
+
+// old fashioned token flow
+POST https://api.glitch.com/projects/(project invite token)/join
+>
+(nothing)
+<
+(project json)
+
+// newfangled share flow
+
+// share invite
+POST https://api.glitch.com/v1/projects/d206077e-97d2-489a-acb5-cc73fb82a071/invites
+> {"userId":210195}
+< {"id":29999598,"expiresAt":"2021-03-10T05:43:14.725Z","user":{"id":210195,"name":null,"login":"wh0","avatarUrl":"https://s3.amazonaws.com/production-assetsbucket-8ljvyr1xczmb/user-avatar/f01b5275-d807-41b9-880f-4d17e51e9ff6-large.png","color":"#a7ff82"},"email":null}
+
+POST https://api.glitch.com/v1/projects/(project id)/invites
+>
+{"userId":"(user id)"}
+// supposedly you can alternatively do {"email":"(email?)"}
+<
+(unknown, I never tried it)
+
+GET https://api.glitch.com/v1/projects/(project id)/invites
+>
+(nothing)
+<
+(unknown, I never tried it)
+
+DELETE https://api.glitch.com/v1/projects/(project id)/invites/(invite id)
+>
+(nothing)
+<
+(unknown, I never tried it)
