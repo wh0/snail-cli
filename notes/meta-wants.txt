@@ -1,0 +1,25 @@
+collaborator management:
+- old style invite links and joining
+- new style user invites and joining
+- ask to join, invite to edit
+- ... and kicking
+- create new user
+
+domains management:
+- add and remove
+- and list
+
+engineering:
+- tests
+- type checking
+- linting
+- style checking
+
+materials:
+- getting started section for root readme
+- ... with graphics so visitors don't get bored
+- maybe a website
+
+impossible things:
+- create project
+- log in
