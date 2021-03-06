@@ -872,6 +872,129 @@ async function doOtLs(path, opts) {
   });
 }
 
+async function doOtRequestJoin(opts) {
+  const WebSocket = require('ws');
+
+  const projectDomain = await getProjectDomain(opts);
+  const project = await getProjectByDomain(projectDomain);
+  const {user} = await boot();
+
+  for (const permission of project.permissions) {
+    if (permission.userId === user.id) {
+      console.error(`Already have permission at access level ${permission.accessLevel}`);
+      return;
+    }
+  }
+
+  const nagUser = {
+    avatarUrl: user.avatarUrl,
+    avatarThumbnailUrl: user.avatarThumbnailUrl,
+    awaitingInvite: true,
+    id: user.id,
+    name: user.name,
+    login: user.login,
+    color: user.color,
+    // I personally find it weird that Glitch relies on what we report
+    // ourselves, to the point where it crashes if this is absent. Snail is
+    // honest here.
+    projectPermission: {
+      userId: user.id,
+      projectId: project.id,
+      accessLevel: 0,
+    },
+  };
+  if (opts.randomName) {
+    nagUser.name = `snail-${crypto.randomBytes(2).toString('hex')}`;
+    nagUser.color = '#c00040';
+  }
+
+  let done = false;
+  const ws = new WebSocket(`wss://api.glitch.com/${project.id}/ot?authorization=${user.persistentToken}`);
+  const c = new OtClient(ws, opts);
+
+  let nagTimer = null;
+  function nag() {
+    c.send({
+      type: 'broadcast',
+      payload: {
+        user: nagUser,
+      },
+    });
+  }
+
+  let inviteRequested = null;
+  const invitePromised = new Promise((resolve, reject) => {
+    inviteRequested = {resolve, reject};
+  });
+  c.onmessage = (msg) => {
+    if (msg.type === 'broadcast' && 'user' in msg.payload) {
+      if (msg.payload.user.id === user.id && msg.payload.user.invited) {
+        // And yet here we are doing the same thing, trusting the broadcast
+        // about our invite.
+        const {resolve, reject} = inviteRequested;
+        inviteRequested = null;
+        resolve(msg.payload.user);
+      }
+    }
+  };
+
+  ws.on('error', (e) => {
+    console.error(e);
+  });
+  ws.on('close', (code, reason) => {
+    if (!done || code !== 1000) {
+      console.error(`Glitch OT closed: ${code} ${reason}`);
+      process.exit(1);
+    }
+  });
+  ws.on('open', () => {
+    if (opts.debug) {
+      console.error('* open');
+    }
+    (async () => {
+      try {
+        await c.fetchMaster();
+
+        console.error(`Requesting to join as ${nagUser.name || nagUser.login || 'Anonymous'}`);
+        nag();
+        nagTimer = setInterval(nag, 10000);
+
+        const invitedUser = await invitePromised;
+
+        clearInterval(nagTimer);
+        c.send({
+          type: 'broadcast',
+          payload: {
+            user: {
+              avatarUrl: user.avatarUrl,
+              avatarThumbnailUrl: user.avatarThumbnailUrl,
+              awaitingInvite: false,
+              id: user.id,
+              // I'd like to reset the name and color to the real ones in the
+              // `--random-name` case, but Glitch doesn't treat these fields
+              // as observable, so they don't actually update in the editor.
+              name: user.name,
+              login: user.login,
+              color: user.color,
+              invited: true,
+              projectPermission: {
+                userId: user.id,
+                projectId: project.id,
+                accessLevel: invitedUser.projectPermission.accessLevel,
+              },
+            },
+          },
+        });
+
+        done = true;
+        ws.close();
+      } catch (e) {
+        console.error(e);
+        process.exit(1);
+      }
+    })();
+  });
+}
 
 async function doWebEdit(opts) {
   console.log(`https://glitch.com/edit/#!/${await getProjectDomain(opts)}`);
@@ -1023,6 +1146,13 @@ cmdOt
   .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
   .option('--debug', 'show OT messages')
   .action(doOtLs);
+cmdOt
+  .command('request-join')
+  .description('request to join')
+  .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
+  .option('--debug', 'show OT messages')
+  .option('-r, --random-name', 'send request under a randomly generated name')
+  .action(doOtRequestJoin);
 const cmdWeb = commander.program
   .command('web')
   .description('display web URLs');
