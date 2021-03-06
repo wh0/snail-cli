@@ -97,10 +97,14 @@ class OtClient {
     this.docPromised = {};
     this.docRequested = {};
     this.opListRequested = {};
+    this.onmessage = null;
     this.ws.on('message', (data) => {
       const msg = JSON.parse(data);
       if (this.opts.debug) {
         console.error('<', util.inspect(msg, {depth: null, colors: true}));
+      }
+      if (this.onmessage) {
+        this.onmessage(msg);
       }
       switch (msg.type) {
         case 'master-state': {
