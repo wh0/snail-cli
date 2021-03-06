@@ -229,7 +229,7 @@ async function otResolveOrCreateParents(c, ops, names, fallbackName) {
     doc = await c.fetchDoc(doc.children[name]);
   }
 
-  for (; docIndex < names.length  - 1; docIndex++) {
+  for (; docIndex < names.length - 1; docIndex++) {
     doc = {
       name: names[docIndex],
       docId: otNewId(),
