@@ -291,6 +291,30 @@ async function guessSingleDestination(dst, name) {
 
 // commands
 
+async function doAuthAnon() {
+  const configPath = path.join(os.homedir(), '.config', 'snail');
+  const persistentTokenPath = path.join(configPath, 'persistent-token');
+  let persistentTokenExists = false;
+  try {
+    await fs.promises.stat(persistentTokenPath);
+    persistentTokenExists = true;
+  } catch (e) {
+    if (e.code !== 'ENOENT') throw e;
+  }
+  if (persistentTokenExists) {
+    throw new Error(`Persistent token already saved (${persistentTokenPath}). Delete that to authenticate again`);
+  }
+
+  const res = await fetch('https://api.glitch.com/v1/users/anon', {
+    method: 'POST',
+  });
+  if (!res.ok) throw new Error(`Glitch users anon response ${res.status} not ok`);
+  const user = await res.json();
+
+  await fs.promises.mkdir(configPath, {recursive: true});
+  await fs.promises.writeFile(persistentTokenPath, user.persistentToken + '\n', {flag: 'wx'});
+}
+
 async function doRemote(opts) {
   const projectDomain = getProjectDomainFromOpts(opts);
   if (!projectDomain) throw new Error('Unable to determine which project. Specify (-p)');
@@ -1040,6 +1064,13 @@ async function doWebDebugger(opts) {
 
 commander.program.name('snail');
 commander.program.version(packageMeta.version);
+const cmdAuth = commander.program
+  .command('auth')
+  .description('authenticate');
+cmdAuth
+  .command('anon')
+  .description('create a new anonymous user')
+  .action(doAuthAnon);
 commander.program
   .command('remote')
   .description('set up the glitch git remote')
