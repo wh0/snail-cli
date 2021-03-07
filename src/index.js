@@ -58,8 +58,17 @@ function getProjectDomainFromOpts(opts) {
 const remoteName = 'glitch';
 
 async function getProjectDomainFromRemote() {
-  const {stdout, stderr} = await util.promisify(childProcess.execFile)('git', ['remote', 'get-url', remoteName]);
-  const remoteUrl = stdout.trim();
+  let result;
+  try {
+    result = await util.promisify(childProcess.execFile)('git', ['remote', 'get-url', remoteName]);
+  } catch (e) {
+    if (e.code === 2) return null;
+    // Out of sympathy for places with older Git that doesn't yet have this
+    // special exit code, we'll do some string matching too.
+    if (typeof e.stderr === 'string' && e.stderr.includes('No such remote')) return null;
+    throw e;
+  }
+  const remoteUrl = result.stdout.trim();
   const m = /https:\/\/(?:[\w-]+@)?api\.glitch\.com\/git\/([\w-]+)/.exec(remoteUrl);
   if (!m) return null;
   return m[1];
