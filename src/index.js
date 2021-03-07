@@ -96,6 +96,16 @@ async function getProjectByDomain(domain) {
   return body[domain];
 }
 
+// user selection
+
+async function getUserByLogin(login) {
+  const res = await fetch(`https://api.glitch.com/v1/users/by/login?login=${login}`);
+  if (!res.ok) throw new Error(`Glitch users by login response ${res.status} not ok`);
+  const body = await res.json();
+  if (!(login in body)) throw new Error(`Glitch user login ${login} not found`);
+  return body[login];
+}
+
 // ot
 
 function otNewId() {
@@ -1041,6 +1051,69 @@ async function doOtRequestJoin(opts) {
   });
 }
 
+async function doMemberAdd(login, opts) {
+  const projectDomain = await getProjectDomain(opts);
+  const project = await getProjectByDomain(projectDomain);
+  const userId = opts.numeric ? +login : (await getUserByLogin(login)).id;
+
+  const res = await fetch(`https://api.glitch.com/project_permissions/${project.id}`, {
+    method: 'POST',
+    headers: {
+      'Authorization': await getPersistentToken(),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      userId,
+      projectId: project.id,
+      accessLevel: 20,
+    }),
+  });
+  if (!res.ok) throw new Error(`Glitch project permissions response ${res.status} not ok`);
+}
+
+async function doMemberRm(login, opts) {
+  const projectDomain = await getProjectDomain(opts);
+  const project = await getProjectByDomain(projectDomain);
+  const userId = opts.numeric ? +login : (await getUserByLogin(login)).id;
+
+  const res = await fetch(`https://api.glitch.com/v1/projects/${project.id}/users/${userId}`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': await getPersistentToken(),
+    },
+  });
+  if (!res.ok) throw new Error(`Glitch projects users response ${res.status} not ok`);
+}
+
+async function doMemberLeave(opts) {
+  const projectDomain = await getProjectDomain(opts);
+  const project = await getProjectByDomain(projectDomain);
+  const {user} = await boot();
+
+  const res = await fetch(`https://api.glitch.com/v1/projects/${project.id}/users/${user.id}`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': await getPersistentToken(),
+    },
+  });
+  if (!res.ok) throw new Error(`Glitch projects users response ${res.status} not ok`);
+}
+
+async function doMemberList(opts) {
+  const projectDomain = await getProjectDomain(opts);
+  const project = await getProjectByDomain(projectDomain);
+  const idParams = project.permissions.map((permission) => `id=${permission.userId}`).join('&');
+  const res = await fetch(`https://api.glitch.com/v1/users/by/id?${idParams}`);
+  if (!res.ok) throw new Error(`Glitch users by id response ${res.status} not ok`);
+  const users = await res.json();
+  console.log('   User ID  Access level  User login');
+  for (const permission of project.permissions) {
+    const userIdCol = ('' + permission.userId).padStart(10);
+    const accessLevelColumn = ('' + permission.accessLevel).padStart(12);
+    console.log(`${userIdCol}  ${accessLevelColumn}  ${users[permission.userId].login}`);
+  }
+}
+
 async function doWebEdit(opts) {
   console.log(`https://glitch.com/edit/#!/${await getProjectDomain(opts)}`);
 }
@@ -1210,6 +1283,31 @@ cmdOt
   .option('--debug', 'show OT messages')
   .option('-r, --random-name', 'send request under a randomly generated name')
   .action(doOtRequestJoin);
+const cmdMember = commander.program
+  .command('member')
+  .description('manage project members');
+cmdMember
+  .command('add <login>')
+  .description('add a member')
+  .option('-p, --project <domain>', 'specify which project')
+  .option('-n, --numeric', 'specify user ID instead of login')
+  .action(doMemberAdd);
+cmdMember
+  .command('rm <login>')
+  .description('remove a member')
+  .option('-p, --project <domain>', 'specify which project')
+  .option('-n, --numeric', 'specify user ID instead of login')
+  .action(doMemberRm);
+cmdMember
+  .command('leave')
+  .description('leave the project')
+  .option('-p, --project <domain>', 'specify which project')
+  .action(doMemberLeave);
+cmdMember
+  .command('list')
+  .description('list members')
+  .option('-p, --project <domain>', 'specify which project')
+  .action(doMemberList);
 const cmdWeb = commander.program
   .command('web')
   .description('display web URLs');
