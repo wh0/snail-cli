@@ -18,7 +18,15 @@ function getPersistentTokenFromEnv() {
 }
 
 async function getPersistentTokenFromConfig() {
-  return (await fs.promises.readFile(path.join(os.homedir(), '.config', 'snail', 'persistent-token'), 'utf8')).trim();
+  const persistentTokenPath = path.join(os.homedir(), '.config', 'snail', 'persistent-token');
+  let data;
+  try {
+    data = await fs.promises.readFile(persistentTokenPath, 'utf8');
+  } catch (e) {
+    if (e.code === 'ENOENT') return null;
+    throw e;
+  }
+  return data.trim();
 }
 
 async function getPersistentTokenHowever() {
