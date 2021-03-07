@@ -282,17 +282,11 @@ async function guessSingleDestination(dst, name) {
   try {
     dstStats = await fs.promises.stat(dst);
   } catch (e) {
-    if ('code' in e && e.code === 'ENOENT') {
-      return dst;
-    } else {
-      throw e;
-    }
+    if (e.code === 'ENOENT') return dst;
+    throw e;
   }
-  if (dstStats.isDirectory()) {
-    return path.join(dst, name);
-  } else {
-    return dst;
-  }
+  if (dstStats.isDirectory()) return path.join(dst, name);
+  return dst;
 }
 
 // commands
