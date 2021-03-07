@@ -315,6 +315,16 @@ async function doAuthAnon() {
   await fs.promises.writeFile(persistentTokenPath, user.persistentToken + '\n', {flag: 'wx'});
 }
 
+async function doWhoami(opts) {
+  const {user} = await boot();
+  if (opts.numeric) {
+    console.log('' + user.id);
+  } else {
+    if (!user.login) throw new Error('Logged in as anonymous user. Pass -n to get ID');
+    console.log(user.login);
+  }
+}
+
 async function doRemote(opts) {
   const projectDomain = getProjectDomainFromOpts(opts);
   if (!projectDomain) throw new Error('Unable to determine which project. Specify (-p)');
@@ -1071,6 +1081,11 @@ cmdAuth
   .command('anon')
   .description('create a new anonymous user')
   .action(doAuthAnon);
+commander.program
+  .command('whoami')
+  .description('show user login')
+  .option('-n, --numeric', 'show user ID instead of login')
+  .action(doWhoami);
 commander.program
   .command('remote')
   .description('set up the glitch git remote')
