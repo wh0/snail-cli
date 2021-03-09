@@ -16,7 +16,6 @@ materials:
 - getting started section for root readme
 - ... with graphics so visitors don't get bored
 - maybe a website
-- license
 
 impossible things:
 - create project
