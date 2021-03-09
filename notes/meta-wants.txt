@@ -10,8 +10,6 @@ monitoring:
 engineering:
 - tests
 - type checking
-- linting
-- style checking
 - maybe enable minimize
 
 materials:
