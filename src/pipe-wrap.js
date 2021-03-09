@@ -1,5 +1,9 @@
 // minify this file for `doTPipe`
 
+/* eslint-disable no-var */
+
+var childProcess = require('child_process');
+
 var base64 = 'base64';
 var data = 'data';
 var end = 'end';
@@ -9,7 +13,6 @@ var processAlias = process;
 var {stdin: processStdin, stdout: processStdout} = processAlias;
 var processStdoutWrite = processStdout.write.bind(processStdout);
 
-var childProcess = require('child_process');
 var child = childProcess.spawn(processAlias.argv[1], {
   stdio: 'pipe',
   shell: true,

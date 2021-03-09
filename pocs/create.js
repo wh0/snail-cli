@@ -1,11 +1,11 @@
 const fetch = require('node-fetch');
 
-const base_project_id = '33ebcb39-397a-4ab9-bc6a-868aeb7914e1'; // empty-glitch
+const baseProjectID = '33ebcb39-397a-4ab9-bc6a-868aeb7914e1'; // empty-glitch
 
 (async function () {
   try {
     // POST v1/projects gets 404? oh well, frontend only uses remix
-    const res = await fetch(`https://api.glitch.com/v1/projects/${base_project_id}/remix`, {
+    const res = await fetch(`https://api.glitch.com/v1/projects/${baseProjectID}/remix`, {
       method: 'POST',
       headers: {
         'Authorization': process.env.G_PERSISTENT_TOKEN,
@@ -24,4 +24,4 @@ const base_project_id = '33ebcb39-397a-4ab9-bc6a-868aeb7914e1'; // empty-glitch
   } catch (e) {
     console.error(e);
   }
-})();
+}());

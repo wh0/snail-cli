@@ -1,4 +1,5 @@
 'use strict';
+
 const childProcess = require('child_process');
 const crypto = require('crypto');
 const fs = require('fs');
@@ -200,7 +201,7 @@ class OtClient {
         this.docRequested[docId] = {resolve, reject};
         this.send({
           type: 'register-document',
-          docId: docId,
+          docId,
         });
       });
     }
@@ -724,9 +725,7 @@ async function doOtPull(src, dst, opts) {
   const project = await getProjectByDomain(projectDomain);
 
   const srcNames = src.split('/');
-  if (dst !== '-') {
-    dst = await guessSingleDestination(dst, srcNames[srcNames.length - 1]);
-  }
+  const dstInfo = dst === '-' ? {stdout: true} : {file: await guessSingleDestination(dst, srcNames[srcNames.length - 1])};
 
   let done = false;
   const ws = new WebSocket(`wss://api.glitch.com/${project.id}/ot?authorization=${await getPersistentToken()}`);
@@ -753,16 +752,16 @@ async function doOtPull(src, dst, opts) {
 
         otRequireNotDir(doc);
         if ('base64Content' in doc) {
-          if (dst === '-') {
+          if ('stdout' in dstInfo) {
             process.stdout.write(doc.base64Content, 'base64');
           } else {
-            await fs.promises.writeFile(dst, doc.base64Content, 'base64');
+            await fs.promises.writeFile(dstInfo.file, doc.base64Content, 'base64');
           }
         } else {
-          if (dst === '-') {
+          if ('stdout' in dstInfo) {
             process.stdout.write(doc.content);
           } else {
-            await fs.promises.writeFile(dst, doc.content);
+            await fs.promises.writeFile(dstInfo.file, doc.content);
           }
         }
       } catch (e) {
@@ -837,13 +836,13 @@ async function doOtMv(src, dst, opts) {
   });
 }
 
-async function doOtRm(path, opts) {
+async function doOtRm(pathArg, opts) {
   const WebSocket = require('ws');
 
   const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
 
-  const names = path.split('/');
+  const names = pathArg.split('/');
 
   let done = false;
   const ws = new WebSocket(`wss://api.glitch.com/${project.id}/ot?authorization=${await getPersistentToken()}`);
@@ -884,13 +883,13 @@ async function doOtRm(path, opts) {
   });
 }
 
-async function doOtLs(path, opts) {
+async function doOtLs(pathArg, opts) {
   const WebSocket = require('ws');
 
   const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
 
-  const names = path.split('/');
+  const names = pathArg.split('/');
 
   let done = false;
   const ws = new WebSocket(`wss://api.glitch.com/${project.id}/ot?authorization=${await getPersistentToken()}`);
