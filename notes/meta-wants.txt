@@ -13,7 +13,6 @@ download project:
 engineering:
 - tests
 - type checking
-- maybe enable minimize
 
 materials:
 - getting started section for root readme
@@ -23,3 +22,4 @@ materials:
 impossible things:
 - create project
 - log in
+- maybe enable minimize
