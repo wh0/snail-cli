@@ -1,0 +1,22 @@
+/remix/:name/:projectId => RemixFromProjectIdRoute
+
+- search params to env dict
+- name ignored
+- send CREATE_PROJECT {baseProjectId, env, projectOwner}
+
+/remix/:domain => RemixProjectRoute
+
+- search params to env dict
+- send CREATE_PROJECT {baseProjectDomain, env, projectOwner}
+
+additionalData = {domain, remixReferer, recaptcha?, gitRepoUrl?}
+remixProject(id, additionalData)
+remixProjectByDomain(domain, additionalData)
+
+by id:
+POST /v1/projects/(id)/remix
+> (data)
+
+by domain:
+POST /v1/projects/by/domain/(domain)/remix
+> (data)
