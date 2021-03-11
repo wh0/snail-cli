@@ -7,11 +7,16 @@ monitoring:
 - that public 'waking up' status socket
 - miscellaneous things we get from the log endpoint
 
-download project:
-- yeah that
-
-create project:
+projects:
 - create project
+- list projects
+- download project
+- maybe archive project
+- maybe unarchive project
+
+auth:
+- email code
+- password
 
 engineering:
 - tests
@@ -23,5 +28,5 @@ materials:
 - maybe a website
 
 impossible things:
-- log in
+- sso auth
 - maybe enable minimize

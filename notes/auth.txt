@@ -1,0 +1,32 @@
+// email
+
+POST https://api.glitch.com/v1/auth/email/
+(request has anon persistent token in authorization header)
+> {"emailAddress":"(email address)"}
+< "OK"
+
+// when you paste it in
+POST https://api.glitch.com/v1/auth/email/(sign in code)
+(request has anon persistent token in authorization header)
+> (nothing)
+< {"user": (the user)}
+
+// when you click the link
+GET https://email.glitch.com/e/c/(bunch of data)
+< (redirect)
+
+GET https://glitch.com/login/email?token=(sign in code)&(other analytics stuff)
+< (it makes the same POST above)
+
+// password
+
+// setting up a password
+POST https://api.glitch.com/v1/self/updatePassword
+> {"oldPassword":"(old password, empty for none)","newPassword":"(new password, min 8 chars)"}
+< "OK"
+
+// signing in
+POST https://api.glitch.com/v1/auth/password
+(request has anon persistent token in authorization header)
+> {"emailAddress":"(email address)","password":"(password)"}
+< {"user": (the user)}
