@@ -18,6 +18,9 @@ auth:
 - email code
 - password
 
+integrations:
+- rsync
+
 engineering:
 - tests
 - type checking
