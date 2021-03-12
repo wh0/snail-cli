@@ -519,6 +519,21 @@ async function doPipe(command, opts) {
   });
 }
 
+async function doRsync(args) {
+  const rsyncArgs = ['-e', 'snail rsync-rsh --', ...args];
+  const c = childProcess.spawn('rsync', rsyncArgs, {
+    stdio: 'inherit',
+  });
+  c.on('exit', (code, signal) => {
+    process.exitCode = signal ? 1 : code;
+  });
+}
+
+async function doRsyncRsh(args) {
+  const host = args.shift();
+  await commander.program.parseAsync(['pipe', '-p', host, '--', ...args], {from: 'user'});
+}
+
 async function doLogs(opts) {
   const WebSocket = require('ws');
 
@@ -1206,6 +1221,21 @@ inefficient.`)
   .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
   .option('--debug', 'show unrecognized lines from terminal session')
   .action(doPipe);
+commander.program
+  .command('rsync <args...>')
+  .description('launch rsync with snail pipe as the transport')
+  .addHelpText('after', `
+Use -- to separate options meant for snail from options meant for rsync.
+
+Examples:
+    # Download the contents of a directory
+    snail rsync -- -aP my-domain:notes/ notes
+    # Upload the contents of a directory
+    snail rsync -- -aP notes/ my-domain:notes`)
+  .action(doRsync);
+commander.program
+  .command('rsync-rsh <args...>', {hidden: true})
+  .action(doRsyncRsh);
 commander.program
   .command('logs')
   .description('watch application logs')
