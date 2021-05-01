@@ -1174,10 +1174,7 @@ commander.program
   .addHelpText('after', `
 Limitations:
 Command line and output are not binary safe.
-No output is returned until the process exits.
-
-Implementation problems:
-Output is not printed when command fails.`)
+No output is returned until the process exits.`)
   .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
   .action(doExec);
 commander.program
