@@ -618,6 +618,7 @@ async function doAPush(source, opts) {
   form.append('signature', body.signature);
   form.append('file', fs.createReadStream(source));
   // node-fetch is variously annoying about how it sends FormData
+  // https://github.com/node-fetch/node-fetch/pull/1020
   const uploadRes = await util.promisify(form.submit).call(form, `https://s3.amazonaws.com/${bucket}`);
   if (uploadRes.statusCode < 200 || uploadRes.statusCode >= 300) throw new Error(`S3 upload response ${uploadRes.statusCode} not ok`);
   console.log(`https://cdn.glitch.com/${encodeURIComponent(key)}?v=${Date.now()}`);
