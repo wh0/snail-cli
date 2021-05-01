@@ -385,7 +385,7 @@ async function doExec(command, opts) {
   }
 }
 
-async function doTerm(opts) {
+async function doTerm(command, opts) {
   const io = require('socket.io-client');
 
   let done = false;
@@ -414,8 +414,8 @@ async function doTerm(opts) {
       process.stdin.setRawMode(true);
     }
     handleResize();
-    if (opts.c) {
-      socket.emit('input', opts.c.join(' ') + '\n');
+    if (command.length) {
+      socket.emit('input', command.join(' ') + '\n');
     }
     process.stdout.on('resize', handleResize);
     process.stdin.on('data', (data) => {
@@ -1178,12 +1178,13 @@ No output is returned until the process exits.`)
   .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
   .action(doExec);
 commander.program
-  .command('term')
+  .command('term [command...]')
   .alias('t')
   .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
-  .option('-c <command...>', 'send initial command')
   .option('--no-raw', 'do not alter stdin tty mode')
   .description('connect to a project terminal')
+  .addHelpText('after', `
+If command is provided, additionally sends that right after connecting.`)
   .action(doTerm);
 commander.program
   .command('pipe <command...>')
