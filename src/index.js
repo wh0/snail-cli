@@ -432,7 +432,7 @@ async function doTerm(opts) {
   });
 }
 
-async function doTPipe(command, opts) {
+async function doPipe(command, opts) {
   const io = require('socket.io-client');
 
   function shellWord(s) {
@@ -1180,7 +1180,7 @@ Implementation problems:
 Output is not printed when command fails.`)
   .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
   .action(doExec);
-const cmdTerm = commander.program
+commander.program
   .command('term')
   .alias('t')
   .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
@@ -1188,15 +1188,15 @@ const cmdTerm = commander.program
   .option('--no-raw', 'do not alter stdin tty mode')
   .description('connect to a project terminal')
   .action(doTerm);
-cmdTerm
+commander.program
   .command('pipe <command...>')
   .description('run a command and transfer binary data to and from it')
   .addHelpText('after', `
 Examples:
     # Download a file
-    snail t pipe 'cat .data/omni.db' >omni.db
+    snail pipe 'cat .data/omni.db' >omni.db
     # Upload a file
-    snail t pipe 'cat >.data/omni.db' <omni.db
+    snail pipe 'cat >.data/omni.db' <omni.db
 
 Implementation problems:
 There is no backpressure, on either side. snail will grow in memory when there
@@ -1207,7 +1207,7 @@ transferred in base64 due to the terminal API supporting UTF-8 only, which is
 inefficient.`)
   .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
   .option('--debug', 'show unrecognized lines from terminal session')
-  .action(doTPipe);
+  .action(doPipe);
 commander.program
   .command('logs')
   .description('watch application logs')
