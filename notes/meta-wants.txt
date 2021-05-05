@@ -4,7 +4,6 @@ domains management:
 
 monitoring:
 - app status
-- that public 'waking up' status socket
 
 projects:
 - create project
