@@ -547,8 +547,12 @@ async function doLogs(opts) {
   });
   ws.on('message', (data) => {
     const msg = JSON.parse(data);
-    if (msg.process === 'application') {
-      console.log(msg.text);
+    if (opts.all) {
+      console.log(msg);
+    } else {
+      if (msg.process === 'application') {
+        console.log(msg.text);
+      }
     }
   });
   ws.on('error', (e) => {
@@ -1241,6 +1245,7 @@ commander.program
   .command('logs')
   .description('watch application logs')
   .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
+  .option('-a, --all', 'show non-application logs too, as well as all fields')
   .action(doLogs);
 commander.program
   .command('stop')

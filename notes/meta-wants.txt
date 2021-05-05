@@ -5,7 +5,6 @@ domains management:
 monitoring:
 - app status
 - that public 'waking up' status socket
-- miscellaneous things we get from the log endpoint
 
 projects:
 - create project
