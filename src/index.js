@@ -1202,8 +1202,8 @@ async function doMemberList(opts) {
   console.log('   User ID  Access level  User login');
   for (const permission of project.permissions) {
     const userIdCol = ('' + permission.userId).padStart(10);
-    const accessLevelColumn = ('' + permission.accessLevel).padStart(12);
-    console.log(`${userIdCol}  ${accessLevelColumn}  ${users[permission.userId].login}`);
+    const accessLevelCol = ('' + permission.accessLevel).padStart(12);
+    console.log(`${userIdCol}  ${accessLevelCol}  ${users[permission.userId].login}`);
   }
 }
 
