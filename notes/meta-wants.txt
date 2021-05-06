@@ -2,9 +2,6 @@ domains management:
 - add and remove
 - and list
 
-monitoring:
-- app status
-
 projects:
 - create project
 - list projects

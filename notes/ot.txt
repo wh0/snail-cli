@@ -35,3 +35,27 @@ wss://api.glitch.com/(project uuid)/ot?authorization=(persistent token)
 < {"type":"accepted-oplist","opList":{"id":"svwNdn9WeB2WUt39","version":6,"ops":[{"docId":"5299b77ec626","type":"remove","text":"hello world\nasdf\na\n","position":0},{"docId":"5299b77ec626","type":"insert","text":"this is a\n","position":0}]}}
 
 // there's also a set-content op type, for offline edits
+
+// app status
+< { type: 'broadcast',
+  payload:
+   { type: 'project-stats',
+     timeNs: 1620201326323000000,
+     cpuUsage: 3414913529,
+     diskSize: 209175552,
+     diskUsage: 1992704,
+     memoryLimit: 536870912,
+     memoryUsage: 34664448,
+     quotaPercent: 0.25 } }
+< { type: 'broadcast',
+  payload:
+   { type: 'project-stats',
+     timeNs: 1620201341405000000,
+     cpuUsage: 3635315666,
+     diskSize: 209175552,
+     diskUsage: 1992704,
+     memoryLimit: 536870912,
+     memoryUsage: 39329792,
+     quotaPercent: 0.25,
+     cpuUsagePercent: 0.014613588308615522,
+     quotaUsagePercent: 0.05845435323446209 } }

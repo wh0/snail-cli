@@ -1070,6 +1070,60 @@ async function doOtRequestJoin(opts) {
   });
 }
 
+async function doOtStatus(opts) {
+  const WebSocket = require('ws');
+
+  const projectDomain = await getProjectDomain(opts);
+  const project = await getProjectByDomain(projectDomain);
+
+  const LINES_PER_HEADER = 23;
+  let linesUntilHeader = 0;
+  const ws = new WebSocket(`wss://api.glitch.com/${project.id}/ot?authorization=${await getPersistentToken()}`);
+  const c = new OtClient(ws, opts);
+  c.onmessage = (msg) => {
+    if (msg.type === 'broadcast' && msg.payload.type === 'project-stats') {
+      if (!linesUntilHeader) {
+        console.log('       Time  Memory                Disk                 CPU');
+        linesUntilHeader = LINES_PER_HEADER;
+      }
+
+      const timeD = new Date(msg.payload.timeNs / 1000000);
+      const timeCol = timeD.toLocaleTimeString().padStart(11);
+      const memoryP = (msg.payload.memoryUsage / msg.payload.memoryLimit * 100).toFixed(0).padStart(3);
+      const memoryUsageM = (msg.payload.memoryUsage / (1 << 20)).toFixed(0).padStart(3);
+      const memoryLimitM = (msg.payload.memoryLimit / (1 << 20)).toFixed(0).padStart(3);
+      const diskP = (msg.payload.diskUsage / msg.payload.diskSize * 100).toFixed(0).padStart(3);
+      const diskUsageM = (msg.payload.diskUsage / (1 << 20)).toFixed(0).padStart(3);
+      const diskSizeM = (msg.payload.diskSize / (1 << 20)).toFixed(0).padStart(3);
+      const cpuP = ((msg.payload.quotaUsagePercent || 0) * 100).toFixed(0).padStart(3);
+      console.log(`${timeCol}    ${memoryP}% ${memoryUsageM}MB / ${memoryLimitM}MB  ${diskP}% ${diskUsageM}MB / ${diskSizeM}MB  ${cpuP}%`);
+
+      linesUntilHeader--;
+    }
+  };
+
+  ws.on('error', (e) => {
+    console.error(e);
+  });
+  ws.on('close', (code, reason) => {
+    console.error(`Glitch OT closed: ${code} ${reason}`);
+    process.exit(1);
+  });
+  ws.on('open', () => {
+    if (opts.debug) {
+      console.error('* open');
+    }
+    (async () => {
+      try {
+        await c.fetchMaster();
+      } catch (e) {
+        console.error(e);
+        process.exit(1);
+      }
+    })();
+  });
+}
+
 async function doMemberAdd(login, opts) {
   const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
@@ -1316,6 +1370,12 @@ cmdOt
   .option('--debug', 'show OT messages')
   .option('-r, --random-name', 'send request under a randomly generated name')
   .action(doOtRequestJoin);
+cmdOt
+  .command('status')
+  .description('watch container resource statistics')
+  .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
+  .option('--debug', 'show OT messages')
+  .action(doOtStatus);
 const cmdMember = commander.program
   .command('member')
   .description('manage project members');
