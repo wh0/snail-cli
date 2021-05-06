@@ -576,6 +576,26 @@ async function doStop(opts) {
   if (!res.ok) throw new Error(`Glitch stop response ${res.status} not ok`);
 }
 
+async function doDownload(opts) {
+  const projectDomain = await getProjectDomain(opts);
+  const project = await getProjectByDomain(projectDomain);
+  const res = await fetch(`https://api.glitch.com/project/download/?authorization=${await getPersistentToken()}&projectId=${project.id}`);
+  if (!res.ok) throw new Error(`Glitch download response ${res.status} not ok`);
+  let dst;
+  if (opts.output === '-') {
+    dst = process.stdout;
+  } else {
+    let path;
+    if (opts.output) {
+      path = opts.output;
+    } else {
+      path = /attachment; filename=([\w-]+.tgz)/.exec(res.headers.get('Content-Disposition'))[1];
+    }
+    dst = fs.createWriteStream(path);
+  }
+  res.body.pipe(dst);
+}
+
 async function doAPolicy(opts) {
   const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
@@ -1306,6 +1326,14 @@ commander.program
   .description('stop project container')
   .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
   .action(doStop);
+commander.program
+  .command('download')
+  .description('download project as tarball')
+  .addHelpText('after', `
+Pass - as path to write to stdout.`)
+  .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
+  .option('-o, --output <path>', 'output file location (uses server suggestion if not set)')
+  .action(doDownload);
 const cmdAsset = commander.program
   .command('asset')
   .alias('a')
