@@ -20,7 +20,7 @@
     "url": "https://github.com/wh0/snail-cli.git"
   },
   "scripts": {
-    "start": "cd dist && python3 -m http.server $PORT"
+    "start": "cd vanity && python3 -m http.server $PORT"
   },
   "dependencies": {
     "commander": "^7.2.0",

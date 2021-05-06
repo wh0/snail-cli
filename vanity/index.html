@@ -1,0 +1,460 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Snail</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,400;0,600;1,400&display=swap">
+<link rel="icon" href="snail.svg">
+<style>
+  .hero {
+    display: flex;
+    flex-direction: column;
+    min-height: 60%;
+    background: #1c1c1c url(https://unsplash.com/photos/Qk28DEeEKc8/download?w=1920) 50% 70% / cover no-repeat; /* https://unsplash.com/photos/Qk28DEeEKc8 */
+    /* runner up: https://unsplash.com/photos/gWTtb5OZHwQ */
+  }
+  .hero .line {
+    margin: 1.35em 0em 0.5em;
+    padding: 0.25em 0.5em;
+    line-height: 1.5em;
+    white-space: nowrap;
+    font-size: 6vw;
+    font-family: Consolas, Menlo, monospace;
+  }
+  .hero .prompt {
+    color: #f0f0f080;
+  }
+  .hero .snail {
+    position: absolute;
+    margin-top: -1.1em;
+  }
+  .hero .command {
+    display: inline;
+    margin: 0em -0.25em;
+    border-radius: 0.25em;
+    padding: 0.25em;
+    background-color: #80ffc0;
+    font-weight: normal;
+    font-size: 1em;
+    color: #1c1c1c;
+  }
+  .hero .scroll-container {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: bottom;
+  }
+  @keyframes hero-scroll {
+    from {
+      transform: translate(0em, 10.5em);
+    }
+  }
+  .hero .scroll {
+    list-style-type: none;
+    margin: -10.5em 0em 0em;
+    padding: 0em;
+    line-height: 1.5em;
+    animation: 2000ms ease 1260ms both hero-scroll;
+  }
+  .hero .space {
+    flex: 1;
+  }
+  @keyframes hero-blink {
+    from {
+      visibility: visible;
+    }
+    50% {
+      visibility: hidden;
+    }
+  }
+  .hero .cursor {
+    visibility: hidden;
+    position: absolute;
+    margin-top: -0.5em;
+    border-bottom: 0.25em solid;
+    animation: 1060ms forwards hero-blink;
+  }
+  .hero .cursor::after {
+    /* why do I not trust the ch unit */
+    content: "\a0 ";
+  }
+  @keyframes hero-appear {
+    to {
+      visibility: visible;
+    }
+  }
+  .hero .typing span {
+    visibility: hidden;
+    animation: both hero-appear;
+  }
+
+  .block {
+    margin: 4rem 3vw;
+    max-width: 37rem;
+  }
+
+  .sigil {
+    padding-left: 1.7rem;
+  }
+  .sigil-command::before {
+    display: block;
+    float: left;
+    margin: -1px 0rem -1px -1.7rem;
+    border: 1px solid #f0f0f040;
+    border-radius: 0.25rem;
+    width: 1.2rem;
+    text-align: center;
+    color: #f0f0f040;
+    content: "$";
+  }
+
+  /* colors from xterm.js */
+  .term-red { color: #cc0000; }
+  .term-green { color: #4e9a06; }
+  .term-yellow { color: #c4a000; }
+  .term-blue { color: #3465a4; }
+  .term-magenta { color: #75507b; }
+  .term-cyan { color: #06989a; }
+  b .term-red { color: #ef2929; }
+  b .term-green { color: #8ae234; }
+  b .term-yellow { color: #fce94f; }
+  b .term-blue { color: #729fcf; }
+  b .term-magenta { color: #ad7fa8; }
+  b .term-cyan { color: #34e2e2; }
+
+  pre .command, code .command {
+    color: #80ffc0;
+  }
+  pre .placeholder, code .placeholder {
+    color: #ffb0a0;
+  }
+
+  .footer {
+    margin: 1.25rem 0rem 0rem;
+    padding: 0rem 3vw 2.8125rem;
+    border-top: 1px solid #f0f0f040;
+    color: #f0f0f080;
+    font-size: 0.75rem;
+  }
+
+  html {
+    height: 100%;
+  }
+  body {
+    margin: 0rem;
+    height: 100%;
+    background-color: #202020;
+    font-family: Source Sans Pro, sans-serif;
+    color: #f0f0f0;
+  }
+  *:any-link:link {
+    color: #8080f0;
+  }
+  *:any-link:visited {
+    color: #d080f0;
+  }
+  *:any-link:active {
+    color: #f08080;
+  }
+  code {
+    padding: 0rem 0.25rem;
+    border-radius: 0.25rem;
+    background-color: #101010;
+    font-family: Consolas, Menlo, monospace;
+    color: #f0f0f0c0;
+  }
+  pre {
+    font-family: Consolas, Menlo, monospace;
+    color: #f0f0f0c0;
+  }
+</style>
+
+<div class="hero">
+  <div class="space"></div>
+  <div class="line">
+    <span class="prompt">$</span>
+    <span class="snail">🐌</span>
+    <h1 class="command">snail</h1>
+    <div class="scroll-container">
+      <ul class="scroll">
+        <li>&#xfeff;<span class="cursor" style="animation-iteration-count: 2;"></span></li>
+        <li>auth</li>
+        <li>remote</li>
+        <li>term</li>
+        <li>asset</li>
+        <li>exec</li>
+        <li>logs</li>
+        <li>
+          <span class="cursor" style="animation-delay: 2830ms; animation-iteration-count: 2;"></span>
+          <span class="typing">
+            <span style="animation-delay: 4520ms;">#</span>
+            <span style="animation-delay: 4685ms;">G</span><span style="animation-delay: 4782ms;">l</span><span style="animation-delay: 4803ms;">i</span><span style="animation-delay: 4884ms;">t</span><span style="animation-delay: 5022ms;">c</span><span style="animation-delay: 5092ms;">h</span>
+            <span style="animation-delay: 5220ms;">C</span><span style="animation-delay: 5285ms;">L</span><span style="animation-delay: 5317ms;">I</span>
+          </span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="block">
+  <p>
+    The Glitch team is busy building their web-based editor.
+    So we're making our own command line tool for the service, and it's called Snail.
+  </p>
+</div>
+
+<div class="block">
+  <h1>Getting started</h1>
+  <p>
+    Install, sign in, and specify a project.
+  </p>
+</div>
+
+<div class="block">
+  <h2>Installation</h2>
+  <p>
+    Use npm <em>or</em> download a bundled script <em>or</em> clone our repository.
+  </p>
+  <p>
+    <strong>npm option.</strong>
+    Run this:
+  </p>
+<pre class="sigil sigil-command">
+npm install -g glitch-snail
+</pre>
+  <p>
+    <strong>Bundled script option.</strong>
+    We have single-file bundles on our <a href="https://github.com/wh0/snail-cli/releases">GitHub Releases</a> page.
+    Download it and set it up to be executable and add it to your PATH:
+  </p>
+<pre class="sigil sigil-command">
+curl -LO https://github.com/wh0/snail-cli/releases/latest/download/snail.js
+chmod +x snail.js
+mkdir -p ~/.local/bin
+ln -s "$PWD/snail.js" ~/.local/bin/snail
+</pre>
+  <p>
+    <strong>Repository option.</strong>
+    Clone a copy of our <a href="https://github.com/wh0/snail-cli">Git repository</a> and have npm install it:
+  </p>
+<pre class="sigil sigil-command">
+git clone https://github.com/wh0/snail-cli.git
+cd snail-cli
+npm install -g
+</pre>
+</div>
+
+<div class="block">
+  <h2>Signing in</h2>
+  <p>
+    Get a sign in code over email <em>or</em> create a new anonymous user.
+    Signing in stores your persistent token in <code>$HOME/.config/snail/persistent-token</code>.
+  </p>
+  <p>
+    <strong>Sign in code over email option.</strong>
+  </p>
+<pre class="sigil sigil-command">
+<span class="command">snail</span> auth send-email <span class="placeholder">snailuser@example.com</span>
+<span class="command">snail</span> auth code <span class="placeholder">xxxxxxxxx-xxxxx-xxxxxxxx</span>
+</pre>
+  <p>
+    <strong>New anonymous user option.</strong>
+  </p>
+<pre class="sigil sigil-command">
+<span class="command">snail</span> auth anon
+</pre>
+</div>
+
+<div class="block">
+  <h2>Specifying a project</h2>
+  <p>
+    Create a Git remote <em>or</em> specify the project on each command.
+  </p>
+  <p>
+    <strong>Git remote option.</strong>
+  </p>
+<pre class="sigil sigil-command">
+<span class="command">snail</span> remote -p <span class="placeholder">glitch-hello-website</span>
+<span class="command">snail</span> ot ls .
+</pre>
+  <p>
+    <strong>On each command option.</strong>
+  </p>
+<pre class="sigil sigil-command">
+<span class="command">snail</span> ot ls -p <span class="placeholder">glitch-hello-website</span> .
+</pre>
+</div>
+
+<div class="block">
+  <h1>Sample session</h1>
+  <p>
+    We have a simple page.
+    We want to deploy it and add an image.
+  </p>
+</div>
+
+<div class="block">
+  <p>
+    Here's the page, in a Git repository.
+  </p>
+<pre class="sigil sigil-command">
+git log -p
+<span class="term-yellow">commit 213b517180c7a4af53836287679bc62c43fc3eba</span>
+Author: w &lt;none&gt;
+Date:   Sat Oct 24 02:58:43 2020 +0000
+
+    add placeholder
+
+<b>diff --git a/index.html b/index.html</b>
+<b>new file mode 100644</b>
+<b>index 0000000..8435ed0</b>
+<b>--- /dev/null</b>
+<b>+++ b/index.html</b>
+<span class="term-cyan">@@ -0,0 +1 @@</span>
+<span class="term-green">+yay</span>
+</pre>
+  <p>
+    The image will go on the assets CDN, so it's not in our repository.
+  </p>
+<pre class="sigil sigil-command">
+git status
+On branch master
+Untracked files:
+  (use "git add &lt;file&gt;..." to include in what will be committed)
+
+        <span class="term-red">my-asset.png</span>
+
+nothing added to commit but untracked files present (use "git add" to track)
+</pre>
+</div>
+
+<div class="block">
+  <p>
+    First, we set up the <code>glitch</code> Git remote so that subsequent commands will operate on a specific project.
+    This will also let us push code into our project.
+  </p>
+<pre class="sigil sigil-command">
+<span class="command">snail</span> remote -p developing-knowledgeable-flock
+</pre>
+<pre class="sigil sigil-command">
+git remote -v
+glitch  https://d8d2<i>[redacted]</i>@api.glitch.com/git/developing-knowledgeable-flock (fetch)
+glitch  https://d8d2<i>[redacted]</i>@api.glitch.com/git/developing-knowledgeable-flock (push)
+</pre>
+</div>
+
+<div class="block">
+  <p>
+    We run a few commands to clear out the starter project.
+    The <code><span class="command">snail</span> term</code> command connects us to an interactive terminal session where we can do that.
+  </p>
+<pre class="sigil sigil-command">
+<span class="command">snail</span> term
+Welcome to the Glitch console
+
+If you’re following someone else’s instructions make sure you trust them.
+If in doubt post a question in our forum https://support.glitch.com
+
+For now, the console and the editor don't automatically sync. You can
+manually run the `refresh` command and it will force a refresh,
+updating the editor with any console-created files.
+
+For more information about this and other technical restrictions,
+please see the Help Center: https://glitch.com/help
+
+<b><span class="term-green">app@developing-knowledgeable-flock</span></b>:<b><span class="term-blue">~</span></b> 06:44
+$ rm -rf * .??*
+
+<b><span class="term-green">app@developing-knowledgeable-flock</span></b>:<b><span class="term-blue">~</span></b> 06:44
+$ git init
+Initialized empty Git repository in /app/.git/
+
+<b><span class="term-green">app@developing-knowledgeable-flock</span></b>:<b><span class="term-blue">~</span></b> 06:44
+$ ls -a
+.  ..  .git
+
+<b><span class="term-green">app@developing-knowledgeable-flock</span></b>:<b><span class="term-blue">~</span></b> 06:45
+$ exit
+logout
+</pre>
+</div>
+
+<div class="block">
+  <p>
+    We upload the image to the assets CDN.
+    That gives us a URL, which we put in our page.
+  </p>
+<pre class="sigil sigil-command">
+<span class="command">snail</span> asset push my-asset.png
+(node:9363) ExperimentalWarning: The fs.promises API is experimental
+https://cdn.glitch.com/b76ed0ee-e39d-450c-a9e2-734161dba179%2Fmy-asset.png?v=1603867309364
+</pre>
+<pre class="sigil sigil-command">
+cat &gt;&gt;index.html &lt;&lt;'EOF'
+&lt;img src="https://cdn.glitch.com/b76ed0ee-e39d-450c-a9e2-734161dba179%2Fmy-asset.png?v=1603867309364"&gt;
+EOF
+</pre>
+<pre class="sigil sigil-command">
+git commit -am "add asset"
+[master 2194d51] add asset
+ 1 file changed, 1 insertion(+)
+</pre>
+</div>
+
+<div class="block">
+  <p>
+    We transfer our site over Git.
+    To avoid conflict with the project's own checkout of the <code>master</code> branch, we push to a new branch called <code>staging</code>.
+  </p>
+<pre class="sigil sigil-command">
+git push glitch master:staging
+Counting objects: 6, done.
+Delta compression using up to 4 threads.
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (6/6), 491 bytes | 0 bytes/s, done.
+Total 6 (delta 0), reused 0 (delta 0)
+To https://d8d2[redacted]@api.glitch.com/git/developing-knowledgeable-flock
+ * [new branch]      master -&gt; staging
+</pre>
+  <p>
+    Then we use Git inside the project to update to the version we pushed.
+    The <code><span class="command">snail</span> exec</code> command lets us run single commands, in case we aren't in the mood for an entire terminal session.
+  </p>
+<pre class="sigil sigil-command">
+<span class="command">snail</span> exec -- git reset --hard staging
+HEAD is now at 2194d51 add asset
+</pre>
+</div>
+
+<div class="block">
+  <p>
+    Finally, we manually run <code>refresh</code> because we've updated the project outside the Glitch editor.
+    We watch the logs to see it come back up.
+  </p>
+<pre class="sigil sigil-command">
+<span class="command">snail</span> exec -- refresh
+restarting...
+</pre>
+<pre class="sigil sigil-command">
+<span class="command">snail</span> logs
+Serving at http://e10415468415:3000, http://127.0.0.1:3000, http://172.17.0.29:3000
+Serving at http://e10415468415:3000, http://127.0.0.1:3000, http://172.17.0.29:3000
+^C
+</pre>
+</div>
+
+<div class="block">
+  <p>
+    Now our application is online with the page we created!
+  </p>
+<pre class="sigil sigil-command">
+curl https://developing-knowledgeable-flock.glitch.me/
+yay
+&lt;img src="https://cdn.glitch.com/b76ed0ee-e39d-450c-a9e2-734161dba179%2Fmy-asset.png?v=1603867309364"&gt;
+</pre>
+</div>
+
+<div class="footer">Please do not write below this line.</div>
+
+<!-- Local Variables: -->
+<!-- indent-tabs-mode: nil -->
+<!-- End: -->

@@ -1,0 +1,40 @@
+<!doctype html>
+<meta charset="utf-8">
+<body>
+<script>
+  const f = document.createElement('form');
+  const o = document.createElement('input');
+  f.appendChild(o);
+  document.body.appendChild(f);
+  const v = document.createElement('pre');
+  document.body.appendChild(v);
+  const evs = [];
+  o.oninput = (e) => {
+    evs.push(e);
+  };
+  f.onsubmit = (e) => {
+    e.preventDefault();
+    if (!evs.length) {
+      v.textContent = '(empty)';
+      return;
+    }
+    const startTime = evs[0].timeStamp;
+    const endTime = e.timeStamp;
+    const duration = endTime - startTime;
+    const offset = 4520;
+    const scaledDuration = 1000;
+    let result = '';
+    for (const ev of evs) {
+      if (/^\s+$/.test(ev.data)) {
+        result += '\n';
+        continue;
+      }
+      const when = (ev.timeStamp - startTime) / duration * scaledDuration + offset;
+      result += `<span style="animation-delay: ${Math.round(when)}ms;">${ev.data}<\/span>`;
+    }
+    result += '\n';
+    result += `${duration}ms -> ${scaledDuration}ms`;
+    v.textContent = result;
+    evs.length = 0;
+  };
+</script>
