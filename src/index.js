@@ -1144,6 +1144,37 @@ async function doOtStatus(opts) {
   });
 }
 
+async function doProjectList() {
+  const {user} = await boot();
+  const persistentToken = await getPersistentToken();
+
+  console.log('Domain                                  Privacy          App type          Last edited  Description');
+  const LIMIT = 100; // dashboard uses 100
+  let pageParam = '';
+  while (true) {
+    const res = await fetch(`https://api.glitch.com/v1/users/by/id/projects?id=${user.id}&limit=${LIMIT}&orderKey=createdAt&orderDirection=ASC${pageParam}`, {
+      headers: {
+        'Authorization': persistentToken,
+      },
+    });
+    if (!res.ok) throw new Error(`Glitch users by id projects response ${res.status} not ok`);
+    const body = await res.json();
+
+    for (const project of body.items) {
+      const domainCol = project.domain.padEnd(38);
+      const privacyCol = project.privacy.padEnd(15);
+      const typeCol = ('' + project.appType).padEnd(16);
+      const edited = project.permission && project.permission.userLastAccess;
+      const editedCol = (edited ? new Date(edited).toLocaleDateString() : '').padStart(11);
+      const descriptionCol = project.description.replace(/\n[\s\S]*/, '...');
+      console.log(`${domainCol}  ${privacyCol}  ${typeCol}  ${editedCol}  ${descriptionCol}`);
+    }
+
+    if (!body.hasMore) break;
+    pageParam = `&lastOrderValue=${encodeURIComponent(body.lastOrderValue)}`;
+  }
+}
+
 async function doMemberAdd(login, opts) {
   const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
@@ -1404,6 +1435,13 @@ cmdOt
   .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
   .option('--debug', 'show OT messages')
   .action(doOtStatus);
+const cmdProject = commander.program
+  .command('project')
+  .description('manage projects');
+cmdProject
+  .command('list')
+  .description('list projects')
+  .action(doProjectList);
 const cmdMember = commander.program
   .command('member')
   .description('manage project members');
