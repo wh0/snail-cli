@@ -1144,6 +1144,51 @@ async function doOtStatus(opts) {
   });
 }
 
+async function doHours() {
+  const {user} = await boot();
+  const persistentToken = await getPersistentToken();
+  const uptimeRes = await fetch(`https://api.glitch.com/v1/users/${user.id}/uptime`, {
+    headers: {
+      'Authorization': persistentToken,
+    },
+  });
+  if (!uptimeRes.ok) throw new Error(`Glitch users uptime response ${uptimeRes.status} not ok`);
+  const uptimeBody = await uptimeRes.json();
+
+  if (!uptimeBody.accountInGoodStanding) {
+    console.log('Account not in good standing');
+  }
+  console.log(`Total: ${uptimeBody.consumedHours.toFixed(2)} / ${uptimeBody.allowanceHours.toFixed(2)}`);
+
+  const projectIds = Object.keys(uptimeBody.hoursByProject);
+  projectIds.sort((a, b) => uptimeBody.hoursByProject[a] - uptimeBody.hoursByProject[b]);
+
+  console.log('Domain                                    Hours');
+  const LIMIT = 100;
+  for (let i = 0; i < projectIds.length; i += LIMIT) {
+    const batch = projectIds.slice(i, i + LIMIT);
+    const idParams = batch.map((id) => `id=${id}`).join('&');
+    const projectsRes = await fetch(`https://api.glitch.com/v1/projects/by/id?${idParams}`, {
+      headers: {
+        'Authorization': persistentToken,
+      },
+    });
+    if (!projectsRes.ok) throw new Error(`Glitch projects by ID response ${projectsRes.status} not ok`);
+    const projects = await projectsRes.json();
+    for (const id of batch) {
+      let domain;
+      if (id in projects) {
+        domain = projects[id].domain;
+      } else {
+        domain = `(${id})`;
+      }
+      const domainCol = domain.padEnd(38);
+      const hoursCol = uptimeBody.hoursByProject[id].toFixed(2).padStart(7);
+      console.log(`${domainCol}  ${hoursCol}`);
+    }
+  }
+}
+
 async function doProjectList() {
   const {user} = await boot();
   const persistentToken = await getPersistentToken();
@@ -1435,6 +1480,10 @@ cmdOt
   .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
   .option('--debug', 'show OT messages')
   .action(doOtStatus);
+commander.program
+  .command('hours')
+  .description('show project hours usage')
+  .action(doHours);
 const cmdProject = commander.program
   .command('project')
   .description('manage projects');
