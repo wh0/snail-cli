@@ -1279,7 +1279,9 @@ async function doMemberList(opts) {
   for (const permission of project.permissions) {
     const userIdCol = ('' + permission.userId).padStart(10);
     const accessLevelCol = ('' + permission.accessLevel).padStart(12);
-    console.log(`${userIdCol}  ${accessLevelCol}  ${users[permission.userId].login}`);
+    const login = users[permission.userId].login;
+    const userLoginCol = typeof login === 'string' ? login : `(${login})`;
+    console.log(`${userIdCol}  ${accessLevelCol}  ${userLoginCol}`);
   }
 }
 
