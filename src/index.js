@@ -56,12 +56,12 @@ function getProjectDomainFromOpts(opts) {
   return opts.project;
 }
 
-const remoteName = 'glitch';
+const REMOTE_NAME = 'glitch';
 
 async function getProjectDomainFromRemote() {
   let result;
   try {
-    result = await util.promisify(childProcess.execFile)('git', ['remote', 'get-url', remoteName]);
+    result = await util.promisify(childProcess.execFile)('git', ['remote', 'get-url', REMOTE_NAME]);
   } catch (e) {
     if (e.code === 2) return null;
     // Out of sympathy for places with older Git that doesn't yet have this
@@ -341,7 +341,7 @@ async function doRemote(opts) {
   if (!projectDomain) throw new Error('Unable to determine which project. Specify (-p)');
   const {user} = await boot();
   const url = `https://${user.gitAccessToken}@api.glitch.com/git/${projectDomain}`;
-  await util.promisify(childProcess.execFile)('git', ['remote', 'add', remoteName, url]);
+  await util.promisify(childProcess.execFile)('git', ['remote', 'add', REMOTE_NAME, url]);
 }
 
 async function doSetenv(name, value, opts) {
