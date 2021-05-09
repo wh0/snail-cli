@@ -1245,6 +1245,40 @@ async function doProjectCreate(domain, opts) {
   console.log(project.domain);
 }
 
+async function doProjectUpdate(opts) {
+  const projectDomain = await getProjectDomain(opts);
+  const project = await getProjectByDomain(projectDomain);
+
+  let any = false;
+  const reqBody = {};
+  if ('domain' in opts) {
+    any = true;
+    reqBody.domain = opts.domain;
+  }
+  if ('description' in opts) {
+    any = true;
+    reqBody.description = opts.description;
+  }
+  if ('private' in opts) {
+    any = true;
+    reqBody.private = opts.private;
+  }
+  if ('privacy' in opts) {
+    any = true;
+    reqBody.privacy = opts.privacy;
+  }
+  if (!any) return;
+  const res = await fetch(`https://api.glitch.com/v1/projects/${project.id}`, {
+    method: 'PATCH',
+    headers: {
+      'Authorization': await getPersistentToken(),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(reqBody),
+  });
+  if (!res.ok) throw new Error(`Glitch projects patch response ${res.status} not ok`);
+}
+
 async function doProjectList() {
   const {user} = await boot();
   const persistentToken = await getPersistentToken();
@@ -1568,6 +1602,16 @@ Implementation problems:
 Does not send a reCAPTCHA response. This won't work on anonymous accounts.`)
   .option('-r, --remix <domain>', 'specify base project (hello-express if not set)')
   .action(doProjectCreate);
+cmdProject
+  .command('update')
+  .description('update a project')
+  .option('-p, --project <domain>', 'specify which project')
+  .option('--domain <new_domain>', 'set new domain')
+  .option('--description <description>', 'set description')
+  .option('--private', 'set legacy private flag (deprecated)')
+  .option('--no-private', 'clear legacy private flag (deprecated)')
+  .option('--privacy <privacy>', 'set privacy (public, private_code, or private_project)')
+  .action(doProjectUpdate);
 cmdProject
   .command('list')
   .description('list projects')
