@@ -3,7 +3,6 @@ domains management:
 - and list
 
 projects:
-- create project
 - maybe archive project
 - maybe unarchive project
 

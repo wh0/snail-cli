@@ -1226,6 +1226,25 @@ async function doHours() {
   }
 }
 
+async function doProjectCreate(domain, opts) {
+  const fromDomain = opts.remix || 'hello-express';
+  const reqBody = {};
+  if (domain) {
+    reqBody.domain = domain;
+  }
+  const res = await fetch(`https://api.glitch.com/v1/projects/by/domain/${fromDomain}/remix`, {
+    method: 'POST',
+    headers: {
+      'Authorization': await getPersistentToken(),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(reqBody),
+  });
+  if (!res.ok) throw new Error(`Glitch projects by domain remix response ${res.status} not ok`);
+  const project = await res.json();
+  console.log(project.domain);
+}
+
 async function doProjectList() {
   const {user} = await boot();
   const persistentToken = await getPersistentToken();
@@ -1538,6 +1557,17 @@ commander.program
 const cmdProject = commander.program
   .command('project')
   .description('manage projects');
+cmdProject
+  .command('create [domain]')
+  .description('create a project')
+  .addHelpText('after', `
+Creates a new project and shows its domain. Leave domain unset to get a
+randomly generated project domain.
+
+Implementation problems:
+Does not send a reCAPTCHA response. This won't work on anonymous accounts.`)
+  .option('-r, --remix <domain>', 'specify base project (hello-express if not set)')
+  .action(doProjectCreate);
 cmdProject
   .command('list')
   .description('list projects')
