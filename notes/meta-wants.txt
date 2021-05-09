@@ -8,7 +8,6 @@ projects:
 - maybe unarchive project
 
 auth:
-- email code
 - password
 
 engineering:

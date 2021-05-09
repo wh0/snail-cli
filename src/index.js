@@ -14,12 +14,36 @@ const packageMeta = require('../package.json');
 
 // credentials
 
+function getPersistentTokenPath() {
+  return path.join(os.homedir(), '.config', 'snail', 'persistent-token');
+}
+
+async function failIfPersistentTokenSaved() {
+  const persistentTokenPath = getPersistentTokenPath();
+  let persistentTokenExists = false;
+  try {
+    await fs.promises.stat(persistentTokenPath);
+    persistentTokenExists = true;
+  } catch (e) {
+    if (e.code !== 'ENOENT') throw e;
+  }
+  if (persistentTokenExists) {
+    throw new Error(`Persistent token already saved (${persistentTokenPath}). Delete that to authenticate again`);
+  }
+}
+
+async function savePersistentToken(persistentToken) {
+  const persistentTokenPath = getPersistentTokenPath();
+  await fs.promises.mkdir(path.dirname(persistentTokenPath), {recursive: true});
+  await fs.promises.writeFile(persistentTokenPath, persistentToken + '\n', {flag: 'wx'});
+}
+
 function getPersistentTokenFromEnv() {
   return process.env.G_PERSISTENT_TOKEN;
 }
 
 async function getPersistentTokenFromConfig() {
-  const persistentTokenPath = path.join(os.homedir(), '.config', 'snail', 'persistent-token');
+  const persistentTokenPath = getPersistentTokenPath();
   let data;
   try {
     data = await fs.promises.readFile(persistentTokenPath, 'utf8');
@@ -303,18 +327,7 @@ async function guessSingleDestination(dst, name) {
 // commands
 
 async function doAuthAnon() {
-  const configPath = path.join(os.homedir(), '.config', 'snail');
-  const persistentTokenPath = path.join(configPath, 'persistent-token');
-  let persistentTokenExists = false;
-  try {
-    await fs.promises.stat(persistentTokenPath);
-    persistentTokenExists = true;
-  } catch (e) {
-    if (e.code !== 'ENOENT') throw e;
-  }
-  if (persistentTokenExists) {
-    throw new Error(`Persistent token already saved (${persistentTokenPath}). Delete that to authenticate again`);
-  }
+  await failIfPersistentTokenSaved();
 
   const res = await fetch('https://api.glitch.com/v1/users/anon', {
     method: 'POST',
@@ -322,8 +335,32 @@ async function doAuthAnon() {
   if (!res.ok) throw new Error(`Glitch users anon response ${res.status} not ok`);
   const user = await res.json();
 
-  await fs.promises.mkdir(configPath, {recursive: true});
-  await fs.promises.writeFile(persistentTokenPath, user.persistentToken + '\n', {flag: 'wx'});
+  await savePersistentToken(user.persistentToken);
+}
+
+async function doAuthSendEmail(email) {
+  const res = await fetch('https://api.glitch.com/v1/auth/email/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      emailAddress: email,
+    }),
+  });
+  if (!res.ok) throw new Error(`Glitch auth email response ${res.status} not ok`);
+}
+
+async function doAuthCode(code) {
+  await failIfPersistentTokenSaved();
+
+  const res = await fetch(`https://api.glitch.com/v1/auth/email/${code}`, {
+    method: 'POST',
+  });
+  if (!res.ok) throw new Error(`Glitch auth email response ${res.status} not ok`);
+  const body = await res.json();
+
+  await savePersistentToken(body.user.persistentToken);
 }
 
 async function doWhoami(opts) {
@@ -1325,6 +1362,18 @@ cmdAuth
   .command('anon')
   .description('create a new anonymous user')
   .action(doAuthAnon);
+cmdAuth
+  .command('send-email <email>')
+  .description('request a sign in code over email')
+  .addHelpText('after', `
+Use the code in the email with snail auth code to authenticate.`)
+  .action(doAuthSendEmail);
+cmdAuth
+  .command('code <code>')
+  .description('authenticate with sign in code')
+  .addHelpText('after', `
+Request a code on the web or with snail auth send-email.`)
+  .action(doAuthCode);
 commander.program
   .command('whoami')
   .description('show user login')
