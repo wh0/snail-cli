@@ -1279,7 +1279,7 @@ async function doProjectUpdate(opts) {
   if (!res.ok) throw new Error(`Glitch projects patch response ${res.status} not ok`);
 }
 
-async function doProjectList() {
+async function doProjectList(opts) {
   const {user} = await boot();
   const persistentToken = await getPersistentToken();
 
@@ -1287,13 +1287,24 @@ async function doProjectList() {
   const LIMIT = 100; // dashboard uses 100
   let pageParam = '';
   while (true) {
-    const res = await fetch(`https://api.glitch.com/v1/users/by/id/projects?id=${user.id}&limit=${LIMIT}&orderKey=createdAt&orderDirection=ASC${pageParam}`, {
-      headers: {
-        'Authorization': persistentToken,
-      },
-    });
-    if (!res.ok) throw new Error(`Glitch users by id projects response ${res.status} not ok`);
-    const body = await res.json();
+    let body;
+    if (opts.deleted) {
+      const res = await fetch(`https://api.glitch.com/v1/users/${user.id}/deletedProjects?limit=${LIMIT}&orderKey=createdAt&orderDirection=ASC${pageParam}`, {
+        headers: {
+          'Authorization': persistentToken,
+        },
+      });
+      if (!res.ok) throw new Error(`Glitch users deleted projects response ${res.status} not ok`);
+      body = await res.json();
+    } else {
+      const res = await fetch(`https://api.glitch.com/v1/users/${user.id}/projects?limit=${LIMIT}&orderKey=createdAt&orderDirection=ASC${pageParam}`, {
+        headers: {
+          'Authorization': persistentToken,
+        },
+      });
+      if (!res.ok) throw new Error(`Glitch users projects response ${res.status} not ok`);
+      body = await res.json();
+    }
 
     for (const project of body.items) {
       const domainCol = project.domain.padEnd(38);
@@ -1615,6 +1626,7 @@ cmdProject
 cmdProject
   .command('list')
   .description('list projects')
+  .option('-d, --deleted', 'list deleted projects')
   .action(doProjectList);
 const cmdMember = commander.program
   .command('member')
