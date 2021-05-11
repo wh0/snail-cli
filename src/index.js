@@ -646,7 +646,7 @@ async function doAPolicy(opts) {
   console.log(JSON.stringify(body));
 }
 
-async function doAPush(source, opts) {
+async function doAPush(src, opts) {
   const FormData = require('form-data');
 
   const projectDomain = await getProjectDomain(opts);
@@ -668,7 +668,7 @@ async function doAPush(source, opts) {
       if ('acl' in condition) acl = condition.acl;
     }
   }
-  const key = keyPrefix + (opts.name || path.basename(source));
+  const key = keyPrefix + (opts.name || path.basename(src));
   const form = new FormData();
   form.append('key', key);
   form.append('Content-Type', opts.type);
@@ -677,7 +677,7 @@ async function doAPush(source, opts) {
   form.append('acl', acl);
   form.append('policy', body.policy);
   form.append('signature', body.signature);
-  form.append('file', fs.createReadStream(source));
+  form.append('file', fs.createReadStream(src));
   // node-fetch is variously annoying about how it sends FormData
   // https://github.com/node-fetch/node-fetch/pull/1020
   const uploadRes = await util.promisify(form.submit).call(form, `https://s3.amazonaws.com/${bucket}`);
@@ -1524,13 +1524,13 @@ cmdAsset
   .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
   .action(doAPolicy);
 cmdAsset
-  .command('push <source>')
+  .command('push <src>')
   .description('upload an assset')
   .addHelpText('after', `
 Implementation problems:
 Does not maintain .glitch-assets.`)
   .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
-  .option('-n, --name <name>', 'destination filename (taken from source if not set)')
+  .option('-n, --name <name>', 'destination filename (taken from src if not set)')
   .option('-t, --type <type>', 'asset MIME type', 'application/octet-stream')
   .option('-a, --max-age <age_seconds>', 'max-age for Cache-Control', 31536000)
   .action(doAPush);
