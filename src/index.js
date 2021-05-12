@@ -641,7 +641,7 @@ async function doAPolicy(opts) {
       'Authorization': await getPersistentToken(),
     },
   });
-  if (!res.ok) throw new Error(`Glitch policy response ${res.status} not ok`);
+  if (!res.ok) throw new Error(`Glitch projects policy response ${res.status} not ok`);
   const body = await res.json();
   console.log(JSON.stringify(body));
 }
@@ -656,7 +656,7 @@ async function doAPush(src, opts) {
       'Authorization': await getPersistentToken(),
     },
   });
-  if (!policyRes.ok) throw new Error(`Glitch policy response ${policyRes.status} not ok`);
+  if (!policyRes.ok) throw new Error(`Glitch projects policy response ${policyRes.status} not ok`);
   const body = await policyRes.json();
   const policy = JSON.parse(Buffer.from(body.policy, 'base64').toString('utf-8'));
   let bucket, keyPrefix, acl;
