@@ -70,7 +70,7 @@ async function boot() {
       'Authorization': await getPersistentToken(),
     },
   });
-  if (!res.ok) throw new Error(`Glitch boot response ${res.status} not ok`);
+  if (!res.ok) throw new Error(`Glitch v0 boot response ${res.status} not ok`);
   return await res.json();
 }
 
@@ -392,7 +392,7 @@ async function doSetenv(name, value, opts) {
     },
     body: JSON.stringify({env}),
   });
-  if (!res.ok) throw new Error(`Glitch setenv response ${res.status} not ok`);
+  if (!res.ok) throw new Error(`Glitch v0 setenv response ${res.status} not ok`);
 }
 
 async function doExec(command, opts) {
@@ -418,7 +418,7 @@ async function doExec(command, opts) {
     process.stderr.write(body.stderr);
     process.exitCode = body.signal || body.code;
   } else {
-    throw new Error(`Glitch exec response ${res.status} not ok`);
+    throw new Error(`Glitch v0 exec response ${res.status} not ok`);
   }
 }
 
@@ -1338,7 +1338,7 @@ async function doMemberAdd(login, opts) {
       accessLevel: 20,
     }),
   });
-  if (!res.ok) throw new Error(`Glitch project permissions response ${res.status} not ok`);
+  if (!res.ok) throw new Error(`Glitch v0 project permissions response ${res.status} not ok`);
 }
 
 async function doMemberRm(login, opts) {
