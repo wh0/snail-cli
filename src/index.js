@@ -1279,6 +1279,39 @@ async function doProjectUpdate(opts) {
   if (!res.ok) throw new Error(`Glitch projects patch response ${res.status} not ok`);
 }
 
+async function doProjectDelete(opts) {
+  const projectDomain = await getProjectDomain(opts);
+  const project = await getProjectByDomain(projectDomain);
+  const res = await fetch(`https://api.glitch.com/v1/projects/${project.id}`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': await getPersistentToken(),
+    },
+  });
+  if (!res.ok) throw new Error(`Glitch projects delete response ${res.status} not ok`);
+}
+
+async function doProjectUndelete(opts) {
+  const projectDomain = await getProjectDomain(opts);
+  const {user} = await boot();
+  // is there a way to get a deleted project by domain in the v1 API?
+  // `https://api.glitch.com/v1/users/${user.id}/deletedProjects?limit=1&orderKey=domain&orderDirection=DESC&lastOrderValue=${projectDomain}%00`
+  const projectRes = await fetch(`https://api.glitch.com/projects/${projectDomain}?showDeleted=true`, {
+    headers: {
+      'Authorization': await getPersistentToken(),
+    },
+  });
+  if (!projectRes.ok) throw new Error(`Glitch v0 projects response ${res.status} not ok`);
+  const project = await projectRes.json();
+  const res = await fetch(`https://api.glitch.com/v1/projects/${project.id}/undelete`, {
+    method: 'POST',
+    headers: {
+      'Authorization': await getPersistentToken(),
+    },
+  });
+  if (!res.ok) throw new Error(`Glitch projects undelete response ${res.status} not ok`);
+}
+
 async function doProjectList(opts) {
   const {user} = await boot();
   const persistentToken = await getPersistentToken();
@@ -1623,6 +1656,16 @@ cmdProject
   .option('--no-private', 'clear legacy private flag (deprecated)')
   .option('--privacy <privacy>', 'set privacy (public, private_code, or private_project)')
   .action(doProjectUpdate);
+cmdProject
+  .command('delete')
+  .description('delete a project')
+  .option('-p, --project <domain>', 'specify which project')
+  .action(doProjectDelete);
+cmdProject
+  .command('undelete')
+  .description('undelete a project')
+  .option('-p, --project <domain>', 'specify which project')
+  .action(doProjectUndelete);
 cmdProject
   .command('list')
   .description('list projects')

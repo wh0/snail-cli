@@ -2,10 +2,6 @@ domains management:
 - add and remove
 - and list
 
-projects:
-- maybe archive project
-- maybe unarchive project
-
 auth:
 - password
 
