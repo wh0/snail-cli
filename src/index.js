@@ -1407,7 +1407,7 @@ async function doMemberList(opts) {
   const project = await getProjectByDomain(projectDomain);
   const idParams = project.permissions.map((permission) => `id=${permission.userId}`).join('&');
   const res = await fetch(`https://api.glitch.com/v1/users/by/id?${idParams}`);
-  if (!res.ok) throw new Error(`Glitch users by id response ${res.status} not ok`);
+  if (!res.ok) throw new Error(`Glitch users by ID response ${res.status} not ok`);
   const users = await res.json();
   console.log('   User ID  Access level  User login');
   for (const permission of project.permissions) {
