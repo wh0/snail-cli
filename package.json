@@ -1,6 +1,12 @@
 {
-  "name": "snail",
+  "name": "glitch-snail",
   "version": "2.0.0",
+  "description": "CLI for Glitch",
+  "keywords": [
+    "glitch",
+    "cli"
+  ],
+  "homepage": "https://snail-cli.glitch.me/",
   "license": "MIT",
   "files": [
     "/snail.js",
@@ -8,6 +14,10 @@
   ],
   "bin": {
     "snail": "./snail.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wh0/snail-cli.git"
   },
   "scripts": {
     "start": "cd dist && python3 -m http.server $PORT"
