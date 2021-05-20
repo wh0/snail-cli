@@ -1518,7 +1518,7 @@ Implementation problems:
 There is no backpressure, on either side. snail will grow in memory when there
 is more data on stdin than the network can send. The WeTTY server will grow in
 memory when there is more data on stdout than the network can receive. Restart
-the project container with (snail stop) to reclaim memory from WeTTY. Data is
+the project container (with snail stop) to reclaim memory from WeTTY. Data is
 transferred in base64 due to the terminal API supporting UTF-8 only, which is
 inefficient.`)
   .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
