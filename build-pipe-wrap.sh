@@ -1,2 +1,2 @@
 #!/bin/sh -eu
-terser -c evaluate=false -m --module src/pipe-wrap.js
+terser -c evaluate=false -m --module misc/pipe-wrap.js
