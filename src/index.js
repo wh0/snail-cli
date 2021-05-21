@@ -477,7 +477,7 @@ async function doPipe(command, opts) {
   }
 
   // see pipe-wrap.js
-  const WRAPPER_SRC = 'var e="base64",n="data",t="end",o="\\n",r=process,{stdin:s,stdout:i}=r,a=i.write.bind(i),d=require("child_process").spawn(r.argv[1],{stdio:"pipe",shell:!0}),{stdin:p,stdout:c,stderr:l}=d,u=setInterval((()=>{a("p\\n")}),4e3),f="";s.setRawMode(!0),s.setEncoding("ascii"),s.on(n,(n=>{var t=(f+n).split(o);for(var r of(f=t.pop(),t))r?p.write(Buffer.from(r,e)):p.end()})),a("s\\n"),c.on(n,(n=>{a("o"+n.toString(e)+o)})),c.on(t,(()=>{a("O\\n")})),l.on(n,(n=>{a("e"+n.toString(e)+o)})),l.on(t,(()=>{a("E\\n")})),d.on("exit",((e,n)=>{a("r"+(n?1:e)+o),clearTimeout(u),s.pause()}));';
+  const WRAPPER_SRC = 'var e="base64",t="data",o="end",{stdin:r,stdout:s,argv:[,n]}=process,i=e=>{s.write(e+"\\n")},a=require("child_process").spawn(n,{stdio:"pipe",shell:!0}),{stdin:d,stdout:p,stderr:c}=a,l=setInterval((()=>{i("p")}),4e3),u="";r.setRawMode(!0),r.setEncoding("ascii"),r.on(t,(t=>{var o=(u+t).split("\\n");for(var r of(u=o.pop(),o))r?d.write(Buffer.from(r,e)):d.end()})),i("s"),p.on(t,(t=>{i("o"+t.toString(e))})),p.on(o,(()=>{i("O")})),c.on(t,(t=>{i("e"+t.toString(e))})),c.on(o,(()=>{i("E")})),a.on("exit",((e,t)=>{i("r"+(t?1:e)),clearTimeout(l),r.pause()}));';
 
   let stdinStarted = false;
   let stdoutEnded = false;
