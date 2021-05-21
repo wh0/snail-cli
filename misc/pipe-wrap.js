@@ -12,7 +12,13 @@ var {
   argv: [, command],
 } = process;
 
+var pingTimer = null;
+
 var writeln = (v) => {
+  if (pingTimer) {
+    clearTimeout(pingTimer);
+    pingTimer = null;
+  }
   processStdout.write(v + '\n');
 };
 
@@ -26,15 +32,16 @@ var {
   stderr: childStderr,
 } = child;
 
-var pingTimer = setInterval(() => {
-  writeln('p');
-}, 4000);
-
 var recvBuf = '';
 
 processStdin.setRawMode(true);
 processStdin.setEncoding('ascii');
 processStdin.on(data, (chunk) => {
+  if (!pingTimer) {
+    pingTimer = setTimeout(() => {
+      writeln('p');
+    }, 4000);
+  }
   var parts = (recvBuf + chunk).split('\n');
   recvBuf = parts.pop();
   for (var part of parts) {
@@ -65,6 +72,5 @@ childStderr.on(end, () => {
 child.on('exit', (code, signal) => {
   var rv = signal ? 1 : code;
   writeln('r' + rv);
-  clearTimeout(pingTimer);
   processStdin.pause();
 });
