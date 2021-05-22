@@ -60,7 +60,7 @@ async function getPersistentTokenHowever() {
 
 async function getPersistentToken() {
   const persistentToken = await getPersistentTokenHowever();
-  if (!persistentToken) throw new Error(`Persistent token unset. Save (${path.join(os.homedir(), '.config', 'snail', 'persistent-token')}) or set in environment (G_PERSISTENT_TOKEN)`);
+  if (!persistentToken) throw new Error(`Persistent token unset. Sign in (snail auth) or save (${getPersistentTokenPath()}) or set in environment (G_PERSISTENT_TOKEN)`);
   return persistentToken;
 }
 
