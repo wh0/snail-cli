@@ -1454,7 +1454,7 @@ commander.program.name('snail');
 commander.program.version(packageMeta.version);
 const cmdAuth = commander.program
   .command('auth')
-  .description('authenticate');
+  .description('sign in');
 cmdAuth
   .command('anon')
   .description('create a new anonymous user')
@@ -1515,10 +1515,10 @@ Examples:
     snail pipe 'cat >.data/omni.db' <omni.db
 
 Implementation problems:
-There is no backpressure, on either side. snail will grow in memory when there
+There is no backpressure, on either side. Snail will grow in memory when there
 is more data on stdin than the network can send. The WeTTY server will grow in
 memory when there is more data on stdout than the network can receive. Restart
-the project container (with snail stop) to reclaim memory from WeTTY. Data is
+the project container (snail stop) to reclaim memory from WeTTY. Data is
 transferred in base64 due to the terminal API supporting UTF-8 only, which is
 inefficient.`)
   .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
@@ -1648,7 +1648,7 @@ Does not send a reCAPTCHA response. This won't work on anonymous accounts.`)
   .action(doProjectCreate);
 cmdProject
   .command('update')
-  .description('update a project')
+  .description('update a project\'s metadata')
   .option('-p, --project <domain>', 'specify which project')
   .option('--domain <new_domain>', 'set new domain')
   .option('--description <description>', 'set description')
