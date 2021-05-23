@@ -1,0 +1,10 @@
+POST https://api.glitch.com/v1/projects/(project id)/domains
+> {"domain":"(custom domain)"}
+< {"hostname":"(custom domain)","preview_hostname":"(something).preview.edgeapp.net","dns_configured":false}
+
+GET https://api.glitch.com/v1/projects/(project id)/domains
+< {"items":[{"hostname":"(custom domain)"},...]}
+
+DELETE https://api.glitch.com/v1/projects/(project id)/domains
+< {"domain":"(custom domain)"}
+> "OK"
