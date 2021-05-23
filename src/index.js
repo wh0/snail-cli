@@ -392,7 +392,7 @@ async function doSetenv(name, value, opts) {
     },
     body: JSON.stringify({env}),
   });
-  if (!res.ok) throw new Error(`Glitch v0 setenv response ${res.status} not ok`);
+  if (!res.ok) throw new Error(`Glitch v0 projects setenv response ${res.status} not ok`);
 }
 
 async function doExec(command, opts) {
@@ -418,7 +418,7 @@ async function doExec(command, opts) {
     process.stderr.write(body.stderr);
     process.exitCode = body.signal || body.code;
   } else {
-    throw new Error(`Glitch v0 exec response ${res.status} not ok`);
+    throw new Error(`Glitch v0 projects exec response ${res.status} not ok`);
   }
 }
 
@@ -610,14 +610,14 @@ async function doStop(opts) {
       'Authorization': await getPersistentToken(),
     },
   });
-  if (!res.ok) throw new Error(`Glitch stop response ${res.status} not ok`);
+  if (!res.ok) throw new Error(`Glitch projects stop response ${res.status} not ok`);
 }
 
 async function doDownload(opts) {
   const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
   const res = await fetch(`https://api.glitch.com/project/download/?authorization=${await getPersistentToken()}&projectId=${project.id}`);
-  if (!res.ok) throw new Error(`Glitch download response ${res.status} not ok`);
+  if (!res.ok) throw new Error(`Glitch project download response ${res.status} not ok`);
   let dst;
   if (opts.output === '-') {
     dst = process.stdout;
@@ -1442,7 +1442,7 @@ async function doWebDebugger(opts) {
         'Authorization': await getPersistentToken(),
       },
     });
-    if (!res.ok) throw new Error(`Glitch single purpose tokens devtools response ${res.status} not ok`);
+    if (!res.ok) throw new Error(`Glitch projects single purpose tokens devtools response ${res.status} not ok`);
     const body = await res.json();
     console.log(`devtools://devtools/bundled/inspector.html?ws=api.glitch.com:80/project/debugger/${body.token}`);
   } else {
