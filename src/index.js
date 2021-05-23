@@ -1385,7 +1385,7 @@ async function doMemberRm(login, opts) {
       'Authorization': await getPersistentToken(),
     },
   });
-  if (!res.ok) throw new Error(`Glitch projects users response ${res.status} not ok`);
+  if (!res.ok) throw new Error(`Glitch projects users delete response ${res.status} not ok`);
 }
 
 async function doMemberLeave(opts) {
@@ -1399,7 +1399,7 @@ async function doMemberLeave(opts) {
       'Authorization': await getPersistentToken(),
     },
   });
-  if (!res.ok) throw new Error(`Glitch projects users response ${res.status} not ok`);
+  if (!res.ok) throw new Error(`Glitch projects users delete response ${res.status} not ok`);
 }
 
 async function doMemberList(opts) {
