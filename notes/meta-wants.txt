@@ -1,7 +1,3 @@
-domains management:
-- add and remove
-- and list
-
 auth:
 - password
 

@@ -1419,6 +1419,49 @@ async function doMemberList(opts) {
   }
 }
 
+async function doDomainAdd(domain, opts) {
+  const projectDomain = await getProjectDomain(opts);
+  const project = await getProjectByDomain(projectDomain);
+  const res = await fetch(`https://api.glitch.com/v1/projects/${project.id}/domains`, {
+    method: 'POST',
+    headers: {
+      'Authorization': await getPersistentToken(),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({domain}),
+  });
+  if (!res.ok) throw new Error(`Glitch projects domains response ${res.status} not ok`);
+}
+
+async function doDomainRm(domain, opts) {
+  const projectDomain = await getProjectDomain(opts);
+  const project = await getProjectByDomain(projectDomain);
+  const res = await fetch(`https://api.glitch.com/v1/projects/${project.id}/domains`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': await getPersistentToken(),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({domain}),
+  });
+  if (!res.ok) throw new Error(`Glitch projects domains delete response ${res.status} not ok`);
+}
+
+async function doDomainList(opts) {
+  const projectDomain = await getProjectDomain(opts);
+  const project = await getProjectByDomain(projectDomain);
+  const res = await fetch(`https://api.glitch.com/v1/projects/${project.id}/domains`, {
+    headers: {
+      'Authorization': await getPersistentToken(),
+    },
+  });
+  if (!res.ok) throw new Error(`Glitch projects domains response ${res.status} not ok`);
+  const body = await res.json();
+  for (const domain of body.items) {
+    console.log(domain.hostname);
+  }
+}
+
 async function doWebEdit(opts) {
   console.log(`https://glitch.com/edit/#!/${await getProjectDomain(opts)}`);
 }
@@ -1696,6 +1739,24 @@ cmdMember
   .description('list members')
   .option('-p, --project <domain>', 'specify which project')
   .action(doMemberList);
+const cmdDomain = commander.program
+  .command('domain')
+  .description('manage custom domains');
+cmdDomain
+  .command('add <domain>')
+  .description('add a custom domain')
+  .option('-p, --project <domain>', 'specify which project')
+  .action(doDomainAdd);
+cmdDomain
+  .command('rm <domain>')
+  .description('remove a custom domain')
+  .option('-p, --project <domain>', 'specify which project')
+  .action(doDomainRm);
+cmdDomain
+  .command('list')
+  .description('list custom domains')
+  .option('-p, --project <domain>', 'specify which project')
+  .action(doDomainList);
 const cmdWeb = commander.program
   .command('web')
   .description('display web URLs');
