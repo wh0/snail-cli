@@ -1316,7 +1316,7 @@ async function doProjectList(opts) {
   const {user} = await boot();
   const persistentToken = await getPersistentToken();
 
-  console.log('Domain                                  Privacy          App type          Last edited  Description');
+  console.log('Domain                                  Privacy          Application type  Last edited  Description');
   const LIMIT = 100; // dashboard uses 100
   let pageParam = '';
   while (true) {
