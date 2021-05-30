@@ -1462,6 +1462,10 @@ async function doDomainList(opts) {
   }
 }
 
+async function doWebApp(opts) {
+  console.log(`https://${await getProjectDomain(opts)}.glitch.me/`);
+}
+
 async function doWebEdit(opts) {
   console.log(`https://glitch.com/edit/#!/${await getProjectDomain(opts)}`);
 }
@@ -1760,6 +1764,11 @@ cmdDomain
 const cmdWeb = commander.program
   .command('web')
   .description('display web URLs');
+cmdWeb
+  .command('app')
+  .description('display application URL')
+  .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
+  .action(doWebApp);
 cmdWeb
   .command('edit')
   .description('display editor URL')
