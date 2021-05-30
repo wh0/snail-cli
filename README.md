@@ -1,3 +1,4 @@
-snail-cli is a tool for Glitch.
+# Snail
 
-See the posting on the Glitch Support forum for more info.
+Snail is a CLI for Glitch.
+See our [website](https://snail-cli.glitch.me) for instructions and stuff.
