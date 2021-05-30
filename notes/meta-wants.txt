@@ -5,11 +5,6 @@ engineering:
 - tests
 - type checking
 
-materials:
-- getting started section for root readme
-- ... with graphics so visitors don't get bored
-- maybe a website
-
 impossible things:
 - sso auth
 - maybe enable minimize
