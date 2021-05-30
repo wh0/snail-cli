@@ -126,6 +126,14 @@
   pre .placeholder, code .placeholder {
     color: #ffb0a0;
   }
+  pre .control, code .control {
+    border-radius: 0.25em;
+    padding: 0em 0.25em;
+    background-color: #e0b040;
+    font-family: Source Sans Pro, sans-serif;
+    font-size: 0.75em;
+    color: #202020;
+  }
 
   .footer {
     margin: 1.25rem 0rem 0rem;
@@ -155,8 +163,8 @@
     color: #f08080;
   }
   code {
-    padding: 0rem 0.25rem;
-    border-radius: 0.25rem;
+    padding: 0rem 0.25em;
+    border-radius: 0.25em;
     background-color: #101010;
     font-family: Consolas, Menlo, monospace;
     color: #f0f0f0c0;
@@ -223,7 +231,7 @@ npm install -g glitch-snail
 </pre>
   <p>
     <strong>Bundled script option.</strong>
-    We have single-file bundles on our <a href="https://github.com/wh0/snail-cli/releases">GitHub Releases</a> page.
+    We have a single-file bundle for Node.js on our <a href="https://github.com/wh0/snail-cli/releases">GitHub Releases</a> page.
     Download it and set it up to be executable and add it to your PATH:
   </p>
 <pre class="sigil sigil-command">
@@ -389,9 +397,9 @@ logout
 https://cdn.glitch.com/b76ed0ee-e39d-450c-a9e2-734161dba179%2Fmy-asset.png?v=1603867309364
 </pre>
 <pre class="sigil sigil-command">
-cat &gt;&gt;index.html &lt;&lt;'EOF'
+cat &gt;&gt;index.html
 &lt;img src="https://cdn.glitch.com/b76ed0ee-e39d-450c-a9e2-734161dba179%2Fmy-asset.png?v=1603867309364"&gt;
-EOF
+<span class="control">Ctrl-D</span>
 </pre>
 <pre class="sigil sigil-command">
 git commit -am "add asset"
@@ -438,7 +446,7 @@ restarting...
 <span class="command">snail</span> logs
 Serving at http://e10415468415:3000, http://127.0.0.1:3000, http://172.17.0.29:3000
 Serving at http://e10415468415:3000, http://127.0.0.1:3000, http://172.17.0.29:3000
-^C
+<span class="control">Ctrl-C</span>
 </pre>
 </div>
 
