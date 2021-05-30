@@ -356,12 +356,12 @@ nothing added to commit but untracked files present (use "git add" to track)
     Later, we'll also use this remote to push code into the project.
   </p>
 <pre class="sigil sigil-command">
-<span class="command">snail</span> remote -p developing-knowledgeable-flock
+<span class="command">snail</span> remote -p lapis-empty-cafe
 </pre>
 <pre class="sigil sigil-command">
 git remote -v
-glitch  https://d8d2<i>[redacted]</i>@api.glitch.com/git/developing-knowledgeable-flock (fetch)
-glitch  https://d8d2<i>[redacted]</i>@api.glitch.com/git/developing-knowledgeable-flock (push)
+glitch  https://982a<i>[redacted]</i>@api.glitch.com/git/lapis-empty-cafe (fetch)
+glitch  https://982a<i>[redacted]</i>@api.glitch.com/git/lapis-empty-cafe (push)
 </pre>
   <p>
     The project we're deploying to wasn't created on this anonymous account, so we have to join the project before we can make any changes to it.
@@ -392,18 +392,18 @@ updating the editor with any console-created files.
 For more information about this and other technical restrictions,
 please see the Help Center: https://glitch.com/help
 
-<b><span class="term-green">app@developing-knowledgeable-flock</span></b>:<b><span class="term-blue">~</span></b> 06:44
+<b><span class="term-green">app@lapis-empty-cafe</span></b>:<b><span class="term-blue">~</span></b> 06:44
 $ rm -rf * .??*
 
-<b><span class="term-green">app@developing-knowledgeable-flock</span></b>:<b><span class="term-blue">~</span></b> 06:44
+<b><span class="term-green">app@lapis-empty-cafe</span></b>:<b><span class="term-blue">~</span></b> 06:44
 $ git init
 Initialized empty Git repository in /app/.git/
 
-<b><span class="term-green">app@developing-knowledgeable-flock</span></b>:<b><span class="term-blue">~</span></b> 06:44
+<b><span class="term-green">app@lapis-empty-cafe</span></b>:<b><span class="term-blue">~</span></b> 06:44
 $ ls -a
 .  ..  .git
 
-<b><span class="term-green">app@developing-knowledgeable-flock</span></b>:<b><span class="term-blue">~</span></b> 06:45
+<b><span class="term-green">app@lapis-empty-cafe</span></b>:<b><span class="term-blue">~</span></b> 06:45
 $ exit
 logout
 </pre>
@@ -416,17 +416,16 @@ logout
   </p>
 <pre class="sigil sigil-command">
 <span class="command">snail</span> asset push my-asset.png
-(node:9363) ExperimentalWarning: The fs.promises API is experimental
-https://cdn.glitch.com/b76ed0ee-e39d-450c-a9e2-734161dba179%2Fmy-asset.png?v=1603867309364
+https://cdn.glitch.com/8e6cdc77-20b9-4209-850f-d2607eeae33a%2Fmy-asset.png?v=1622356099641
 </pre>
 <pre class="sigil sigil-command">
 cat &gt;&gt;index.html
-&lt;img src="https://cdn.glitch.com/b76ed0ee-e39d-450c-a9e2-734161dba179%2Fmy-asset.png?v=1603867309364"&gt;
+&lt;img src="https://cdn.glitch.com/8e6cdc77-20b9-4209-850f-d2607eeae33a%2Fmy-asset.png?v=1622356099641"&gt;
 <span class="control">Ctrl-D</span>
 </pre>
 <pre class="sigil sigil-command">
 git commit -am "add asset"
-[master 2194d51] add asset
+[master 6a65e3c] add asset
  1 file changed, 1 insertion(+)
 </pre>
 </div>
@@ -441,9 +440,9 @@ git push glitch master:staging
 Counting objects: 6, done.
 Delta compression using up to 4 threads.
 Compressing objects: 100% (3/3), done.
-Writing objects: 100% (6/6), 491 bytes | 0 bytes/s, done.
+Writing objects: 100% (6/6), 492 bytes | 0 bytes/s, done.
 Total 6 (delta 0), reused 0 (delta 0)
-To https://d8d2[redacted]@api.glitch.com/git/developing-knowledgeable-flock
+To https://982a[redacted]@api.glitch.com/git/lapis-empty-cafe
  * [new branch]      master -&gt; staging
 </pre>
   <p>
@@ -452,7 +451,7 @@ To https://d8d2[redacted]@api.glitch.com/git/developing-knowledgeable-flock
   </p>
 <pre class="sigil sigil-command">
 <span class="command">snail</span> exec -- git reset --hard staging
-HEAD is now at 2194d51 add asset
+HEAD is now at 6a65e3c add asset
 </pre>
 </div>
 
@@ -467,8 +466,8 @@ restarting...
 </pre>
 <pre class="sigil sigil-command">
 <span class="command">snail</span> logs
-Serving at http://e10415468415:3000, http://127.0.0.1:3000, http://172.17.0.29:3000
-Serving at http://e10415468415:3000, http://127.0.0.1:3000, http://172.17.0.29:3000
+Serving at http://1e7adc1b5ef7:3000, http://127.0.0.1:3000, http://172.17.0.62:3000
+Serving at http://1e7adc1b5ef7:3000, http://127.0.0.1:3000, http://172.17.0.62:3000
 <span class="control">Ctrl-C</span>
 </pre>
 </div>
@@ -478,9 +477,9 @@ Serving at http://e10415468415:3000, http://127.0.0.1:3000, http://172.17.0.29:3
     Now our application is online with the page we created!
   </p>
 <pre class="sigil sigil-command">
-curl https://developing-knowledgeable-flock.glitch.me/
+curl https://lapis-empty-cafe.glitch.me/
 yay
-&lt;img src="https://cdn.glitch.com/b76ed0ee-e39d-450c-a9e2-734161dba179%2Fmy-asset.png?v=1603867309364"&gt;
+&lt;img src="https://cdn.glitch.com/8e6cdc77-20b9-4209-850f-d2607eeae33a%2Fmy-asset.png?v=1622356099641"&gt;
 </pre>
 </div>
 
