@@ -353,7 +353,7 @@ nothing added to commit but untracked files present (use "git add" to track)
 <div class="block">
   <p>
     First, we set up the <code>glitch</code> Git remote so that subsequent commands will operate on a specific project.
-    This will also let us push code into our project.
+    Later, we'll also use this remote to push code into the project.
   </p>
 <pre class="sigil sigil-command">
 <span class="command">snail</span> remote -p developing-knowledgeable-flock
@@ -362,6 +362,14 @@ nothing added to commit but untracked files present (use "git add" to track)
 git remote -v
 glitch  https://d8d2<i>[redacted]</i>@api.glitch.com/git/developing-knowledgeable-flock (fetch)
 glitch  https://d8d2<i>[redacted]</i>@api.glitch.com/git/developing-knowledgeable-flock (push)
+</pre>
+  <p>
+    The project we're deploying to wasn't created on this anonymous account, so we have to join the project before we can make any changes to it.
+    We request to join, and another project member approves this request in the web editor.
+  </p>
+<pre class="sigil sigil-command">
+<span class="command">snail</span> ot request-join -r
+Requesting to join as snail-652c
 </pre>
 </div>
 
