@@ -1508,13 +1508,13 @@ cmdAuth
   .action(doAuthAnon);
 cmdAuth
   .command('send-email <email>')
-  .description('request a sign in code over email')
+  .description('request a sign-in code over email')
   .addHelpText('after', `
 Use the code in the email with snail auth code to authenticate.`)
   .action(doAuthSendEmail);
 cmdAuth
   .command('code <code>')
-  .description('authenticate with sign in code')
+  .description('authenticate with sign-in code')
   .addHelpText('after', `
 Request a code on the web or with snail auth send-email.`)
   .action(doAuthCode);

@@ -6,7 +6,7 @@ POST https://api.glitch.com/v1/auth/email/
 < "OK"
 
 // when you paste it in
-POST https://api.glitch.com/v1/auth/email/(sign in code)
+POST https://api.glitch.com/v1/auth/email/(sign-in code)
 (request has anon persistent token in authorization header)
 > (nothing)
 < {"user": (the user)}
@@ -15,7 +15,7 @@ POST https://api.glitch.com/v1/auth/email/(sign in code)
 GET https://email.glitch.com/e/c/(bunch of data)
 < (redirect)
 
-GET https://glitch.com/login/email?token=(sign in code)&(other analytics stuff)
+GET https://glitch.com/login/email?token=(sign-in code)&(other analytics stuff)
 < (it makes the same POST above)
 
 // password
