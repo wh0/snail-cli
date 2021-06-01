@@ -426,9 +426,13 @@ async function doTerm(command, opts) {
   const io = require('socket.io-client');
 
   let done = false;
-  const socket = io('https://api.glitch.com', {
+  const ioOpts = {
     path: `/${await getProjectDomain(opts)}/console/${await getPersistentToken()}/socket.io`,
-  });
+  };
+  if (opts.setTransports) {
+    ioOpts.transports = ['websocket'];
+  }
+  const socket = io('https://api.glitch.com', ioOpts);
 
   function handleResize() {
     socket.emit('resize', {
@@ -486,9 +490,13 @@ async function doPipe(command, opts) {
   let recvBuf = '';
 
   let done = false;
-  const socket = io('https://api.glitch.com', {
+  const ioOpts = {
     path: `/${await getProjectDomain(opts)}/console/${await getPersistentToken()}/socket.io`,
-  });
+  };
+  if (opts.setTransports) {
+    ioOpts.transports = ['websocket'];
+  }
+  const socket = io('https://api.glitch.com', ioOpts);
 
   socket.once('disconnect', (reason) => {
     if (!done || reason !== 'io client disconnect') {
@@ -1547,6 +1555,7 @@ commander.program
   .alias('t')
   .description('connect to a project terminal')
   .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
+  .option('--no-set-transports', 'do not set a custom list of socket.io transports')
   .option('--no-raw', 'do not alter stdin tty mode')
   .addHelpText('after', `
 If command is provided, additionally sends that right after connecting.`)
@@ -1555,6 +1564,7 @@ commander.program
   .command('pipe <command...>')
   .description('run a command and transfer binary data to and from it')
   .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
+  .option('--no-set-transports', 'do not set a custom list of socket.io transports')
   .option('--debug', 'show unrecognized lines from terminal session')
   .addHelpText('after', `
 Examples:
