@@ -39,5 +39,9 @@
   },
   "engines": {
     "node": ">=10"
+  },
+  "glitch": {
+    "projectType": "generated_static",
+    "buildDirectory": "vanity"
   }
 }
