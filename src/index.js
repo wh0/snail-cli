@@ -1536,24 +1536,26 @@ commander.program
 commander.program
   .command('exec <command...>')
   .description('run a command in the project container')
+  .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
   .addHelpText('after', `
 Limitations:
 Command line and output are not binary safe.
 No output is returned until the process exits.`)
-  .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
   .action(doExec);
 commander.program
   .command('term [command...]')
   .alias('t')
+  .description('connect to a project terminal')
   .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
   .option('--no-raw', 'do not alter stdin tty mode')
-  .description('connect to a project terminal')
   .addHelpText('after', `
 If command is provided, additionally sends that right after connecting.`)
   .action(doTerm);
 commander.program
   .command('pipe <command...>')
   .description('run a command and transfer binary data to and from it')
+  .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
+  .option('--debug', 'show unrecognized lines from terminal session')
   .addHelpText('after', `
 Examples:
     # Download a file
@@ -1568,8 +1570,6 @@ memory when there is more data on stdout than the network can receive. Restart
 the project container (snail stop) to reclaim memory from WeTTY. Data is
 transferred in base64 due to the terminal API supporting UTF-8 only, which is
 inefficient.`)
-  .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
-  .option('--debug', 'show unrecognized lines from terminal session')
   .action(doPipe);
 commander.program
   .command('rsync <args...>')
@@ -1600,10 +1600,10 @@ commander.program
 commander.program
   .command('download')
   .description('download project as tarball')
-  .addHelpText('after', `
-Pass - as path to write to stdout.`)
   .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
   .option('-o, --output <path>', 'output file location (uses server suggestion if not set)')
+  .addHelpText('after', `
+Pass - as path to write to stdout.`)
   .action(doDownload);
 const cmdAsset = commander.program
   .command('asset')
@@ -1617,13 +1617,13 @@ cmdAsset
 cmdAsset
   .command('push <src>')
   .description('upload an assset')
-  .addHelpText('after', `
-Implementation problems:
-Does not maintain .glitch-assets.`)
   .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
   .option('-n, --name <name>', 'destination filename (taken from src if not set)')
   .option('-t, --type <type>', 'asset MIME type', 'application/octet-stream')
   .option('-a, --max-age <age_seconds>', 'max-age for Cache-Control', 31536000)
+  .addHelpText('after', `
+Implementation problems:
+Does not maintain .glitch-assets.`)
   .action(doAPush);
 const cmdOt = commander.program
   .command('ot')
@@ -1631,18 +1631,18 @@ const cmdOt = commander.program
 cmdOt
   .command('push <src> <dst>')
   .description('transfer local file src to project file dst')
-  .addHelpText('after', `
-Pass - as src to read from stdin.`)
   .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
   .option('--debug', 'show OT messages')
+  .addHelpText('after', `
+Pass - as src to read from stdin.`)
   .action(doOtPush);
 cmdOt
   .command('pull <src> <dst>')
   .description('transfer project file src to local file dst')
-  .addHelpText('after', `
-Pass - as dst to write to stdout.`)
   .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
   .option('--debug', 'show OT messages')
+  .addHelpText('after', `
+Pass - as dst to write to stdout.`)
   .action(doOtPull);
 cmdOt
   .command('mv <src> <dst>')
@@ -1685,13 +1685,13 @@ const cmdProject = commander.program
 cmdProject
   .command('create [domain]')
   .description('create a project')
+  .option('-r, --remix <domain>', 'specify base project (hello-express if not set)')
   .addHelpText('after', `
 Creates a new project and shows its domain. Leave domain unset to get a
 randomly generated project domain.
 
 Implementation problems:
 Does not send a reCAPTCHA response. This won't work on anonymous accounts.`)
-  .option('-r, --remix <domain>', 'specify base project (hello-express if not set)')
   .action(doProjectCreate);
 cmdProject
   .command('update')
@@ -1783,12 +1783,12 @@ cmdWeb
 cmdWeb
   .command('debugger')
   .description('display debugger URL')
+  .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
+  .option('-c, --cap', 'display devtool URL with debugger token')
   .addHelpText('after', `
 Implementation problems:
 Does not set GLITCH_DEBUGGER. Do that yourself (snail setenv GLITCH_DEBUGGER
 true).`)
-  .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
-  .option('-c, --cap', 'display devtool URL with debugger token')
   .action(doWebDebugger);
 commander.program.parseAsync(process.argv).catch((e) => {
   console.error(e);
