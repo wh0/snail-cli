@@ -22,7 +22,7 @@ module.exports = {
     'no-mixed-operators': 'warn',
     'no-param-reassign': 'warn',
     'no-plusplus': 'off',
-    'no-restricted-syntax': 'off',
+    'no-restricted-syntax': ['error', 'LabeledStatement', 'WithStatement'],
     'no-return-await': 'off',
     'no-shadow': 'warn',
     'no-unused-vars': 'warn',
