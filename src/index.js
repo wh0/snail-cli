@@ -1302,8 +1302,8 @@ async function doProjectDelete(opts) {
 
 async function doProjectUndelete(opts) {
   const projectDomain = await getProjectDomain(opts);
-  const {user} = await boot();
   // is there a way to get a deleted project by domain in the v1 API?
+  // const {user} = await boot();
   // `https://api.glitch.com/v1/users/${user.id}/deletedProjects?limit=1&orderKey=domain&orderDirection=DESC&lastOrderValue=${projectDomain}%00`
   const projectRes = await fetch(`https://api.glitch.com/projects/${projectDomain}?showDeleted=true`, {
     headers: {
