@@ -18,6 +18,7 @@ module.exports = {
     'no-await-in-loop': 'off',
     'no-bitwise': 'off',
     'no-console': 'off',
+    'no-constant-condition': ['warn', {checkLoops: false}],
     'no-continue': 'off',
     'no-else-return': 'off',
     'no-lonely-if': 'off',
