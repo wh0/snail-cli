@@ -626,19 +626,19 @@ async function doDownload(opts) {
   const project = await getProjectByDomain(projectDomain);
   const res = await fetch(`https://api.glitch.com/project/download/?authorization=${await getPersistentToken()}&projectId=${project.id}`);
   if (!res.ok) throw new Error(`Glitch project download response ${res.status} not ok`);
-  let dst;
+  let dstStream;
   if (opts.output === '-') {
-    dst = process.stdout;
+    dstStream = process.stdout;
   } else {
-    let path;
+    let dst;
     if (opts.output) {
-      path = opts.output;
+      dst = opts.output;
     } else {
-      path = /attachment; filename=([\w-]+.tgz)/.exec(res.headers.get('Content-Disposition'))[1];
+      dst = /attachment; filename=([\w-]+.tgz)/.exec(res.headers.get('Content-Disposition'))[1];
     }
-    dst = fs.createWriteStream(path);
+    dstStream = fs.createWriteStream(dst);
   }
-  res.body.pipe(dst);
+  res.body.pipe(dstStream);
 }
 
 async function doAPolicy(opts) {
