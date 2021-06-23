@@ -1,6 +1,6 @@
 // minify this file for `doTPipe`
 
-/* eslint-disable no-var */
+/* eslint-disable no-var, import/newline-after-import */
 
 var base64 = 'base64';
 var data = 'data';
