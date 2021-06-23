@@ -1152,15 +1152,16 @@ async function doOtStatus(opts) {
         linesUntilHeader = LINES_PER_HEADER;
       }
 
-      const timeD = new Date(msg.payload.timeNs / 1000000);
+      const p = msg.payload;
+      const timeD = new Date(p.timeNs / 1000000);
       const timeCol = timeD.toLocaleTimeString().padStart(11);
-      const memoryP = (msg.payload.memoryUsage / msg.payload.memoryLimit * 100).toFixed(0).padStart(3);
-      const memoryUsageM = (msg.payload.memoryUsage / (1 << 20)).toFixed(0).padStart(3);
-      const memoryLimitM = (msg.payload.memoryLimit / (1 << 20)).toFixed(0).padStart(3);
-      const diskP = (msg.payload.diskUsage / msg.payload.diskSize * 100).toFixed(0).padStart(3);
-      const diskUsageM = (msg.payload.diskUsage / (1 << 20)).toFixed(0).padStart(3);
-      const diskSizeM = (msg.payload.diskSize / (1 << 20)).toFixed(0).padStart(3);
-      const cpuP = ((msg.payload.quotaUsagePercent || 0) * 100).toFixed(0).padStart(3);
+      const memoryP = (p.memoryUsage / p.memoryLimit * 100).toFixed(0).padStart(3);
+      const memoryUsageM = (p.memoryUsage / (1 << 20)).toFixed(0).padStart(3);
+      const memoryLimitM = (p.memoryLimit / (1 << 20)).toFixed(0).padStart(3);
+      const diskP = (p.diskUsage / p.diskSize * 100).toFixed(0).padStart(3);
+      const diskUsageM = (p.diskUsage / (1 << 20)).toFixed(0).padStart(3);
+      const diskSizeM = (p.diskSize / (1 << 20)).toFixed(0).padStart(3);
+      const cpuP = ((p.quotaUsagePercent || 0) * 100).toFixed(0).padStart(3);
       console.log(`${timeCol}    ${memoryP}% ${memoryUsageM}MB / ${memoryLimitM}MB  ${diskP}% ${diskUsageM}MB / ${diskSizeM}MB  ${cpuP}%`);
 
       linesUntilHeader--;

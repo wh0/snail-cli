@@ -14,6 +14,7 @@ module.exports = {
     'default-case': 'off',
     'global-require': 'off',
     'guard-for-in': 'off',
+    'max-len': 'warn',
     'no-await-in-loop': 'off',
     'no-console': 'off',
     'no-continue': 'off',
