@@ -27,7 +27,7 @@ module.exports = {
     'no-restricted-syntax': ['error', 'LabeledStatement', 'WithStatement'],
     'no-return-await': 'off',
     'no-shadow': 'warn',
-    'no-unused-vars': 'warn',
+    'no-unused-vars': ['warn', {args: 'none'}],
     'object-curly-spacing': ['error', 'never'],
     'one-var': 'off',
     'one-var-declaration-per-line': 'off',

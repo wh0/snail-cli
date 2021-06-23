@@ -161,7 +161,7 @@ class OtClient {
       switch (msg.type) {
         case 'master-state': {
           this.version = msg.state.version;
-          const {resolve, reject} = this.masterRequested;
+          const {resolve} = this.masterRequested;
           this.masterRequested = null;
           resolve(msg);
           break;
@@ -173,14 +173,14 @@ class OtClient {
           for (const k in children) {
             doc.children[k] = children[k].docId;
           }
-          const {resolve, reject} = this.docRequested[doc.docId];
+          const {resolve} = this.docRequested[doc.docId];
           delete this.docRequested[doc.docId];
           resolve(doc);
           break;
         }
         case 'accepted-oplist': {
           const opList = msg.opList;
-          const {resolve, reject} = this.opListRequested[opList.id];
+          const {resolve} = this.opListRequested[opList.id];
           delete this.opListRequested[opList.id];
           this.version = opList.version + 1;
           resolve();
@@ -188,7 +188,7 @@ class OtClient {
         }
         case 'rejected-oplist': {
           const opList = msg.opList;
-          const {resolve, reject} = this.opListRequested[opList.id];
+          const {reject} = this.opListRequested[opList.id];
           delete this.opListRequested[opList.id];
           reject(new Error(`oplist ${opList.id} rejected`));
           break;
@@ -1070,7 +1070,7 @@ async function doOtRequestJoin(opts) {
       if (msg.payload.user.id === user.id && msg.payload.user.invited) {
         // And yet here we are doing the same thing, trusting the broadcast
         // about our invite.
-        const {resolve, reject} = inviteRequested;
+        const {resolve} = inviteRequested;
         inviteRequested = null;
         resolve(msg.payload.user);
       }
