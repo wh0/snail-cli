@@ -634,7 +634,7 @@ async function doDownload(opts) {
     if (opts.output) {
       dst = opts.output;
     } else {
-      dst = /attachment; filename=([\w-]+.tgz)/.exec(res.headers.get('Content-Disposition'))[1];
+      dst = /attachment; filename=([\w-]+\.tgz)/.exec(res.headers.get('Content-Disposition'))[1];
     }
     dstStream = fs.createWriteStream(dst);
   }
