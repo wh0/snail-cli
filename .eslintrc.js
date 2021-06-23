@@ -16,6 +16,7 @@ module.exports = {
     'guard-for-in': 'off',
     'max-len': 'warn',
     'no-await-in-loop': 'off',
+    'no-bitwise': 'off',
     'no-console': 'off',
     'no-continue': 'off',
     'no-else-return': 'off',
