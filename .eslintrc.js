@@ -21,7 +21,7 @@ module.exports = {
     'no-continue': 'off',
     'no-else-return': 'off',
     'no-lonely-if': 'off',
-    'no-mixed-operators': 'warn',
+    'no-mixed-operators': ['warn', {groups: [['<', '<=', '>', '>=', 'in', 'instanceof', '==', '!=', '===', '!==', '&', '^', '|']]}],
     'no-param-reassign': 'warn',
     'no-plusplus': 'off',
     'no-restricted-syntax': ['error', 'LabeledStatement', 'WithStatement'],
