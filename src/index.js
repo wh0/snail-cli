@@ -1310,7 +1310,7 @@ async function doProjectUndelete(opts) {
       'Authorization': await getPersistentToken(),
     },
   });
-  if (!projectRes.ok) throw new Error(`Glitch v0 projects response ${res.status} not ok`);
+  if (!projectRes.ok) throw new Error(`Glitch v0 projects response ${projectRes.status} not ok`);
   const project = await projectRes.json();
   const res = await fetch(`https://api.glitch.com/v1/projects/${project.id}/undelete`, {
     method: 'POST',
