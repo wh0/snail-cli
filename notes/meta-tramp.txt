@@ -1,0 +1,17 @@
+Put this in your .emacs:
+
+```el
+(with-eval-after-load 'tramp
+  (add-to-list 'tramp-methods
+   '("snail"
+     (tramp-login-program "snail")
+     (tramp-login-args (("term") ("-p") ("%h") ("--no-raw")))
+     (tramp-remote-shell "/bin/sh")
+     (tramp-remote-shell-args ("-c")))))
+```
+
+Use the filename format /snail:(your project domain):(path in project).
+
+```sh
+emacs /snail:snail-cli:src/index.js
+```
