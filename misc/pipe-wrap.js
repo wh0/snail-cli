@@ -4,7 +4,6 @@
 
 var base64 = 'base64';
 var data = 'data';
-var end = 'end';
 
 var {
   stdin: processStdin,
@@ -26,11 +25,6 @@ var child = require('child_process').spawn(command, {
   stdio: 'pipe',
   shell: true,
 });
-var {
-  stdin: childStdin,
-  stdout: childStdout,
-  stderr: childStderr,
-} = child;
 
 var recvBuf = '';
 
@@ -46,27 +40,21 @@ processStdin.on(data, (chunk) => {
   recvBuf = parts.pop();
   for (var part of parts) {
     if (part) {
-      childStdin.write(Buffer.from(part, base64));
+      child.stdin.write(Buffer.from(part, base64));
     } else {
-      childStdin.end();
+      child.stdin.end();
     }
   }
 });
 
 writeln('s');
 
-childStdout.on(data, (chunk) => {
+child.stdout.on(data, (chunk) => {
   writeln('o' + chunk.toString(base64));
 });
-childStdout.on(end, () => {
-  writeln('O');
-});
 
-childStderr.on(data, (chunk) => {
+child.stderr.on(data, (chunk) => {
   writeln('e' + chunk.toString(base64));
-});
-childStderr.on(end, () => {
-  writeln('E');
 });
 
 child.on('exit', (code, signal) => {
