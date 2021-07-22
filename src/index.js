@@ -483,7 +483,7 @@ async function doPipe(command, opts) {
   // see pipe-wrap.js
   const WRAPPER_SRC = 'var e="base64",o="data",t="end",{stdin:s,stdout:n,argv:[,r]}=process,i=e=>{u&&(clearTimeout(u),u=null),n.write(e+"\\n")},a=require("child_process").spawn(r,{stdio:"pipe",shell:!0}),{stdin:d,stdout:p,stderr:l}=a,u=null,c="";s.setRawMode(!0),s.setEncoding("ascii"),s.on(o,(o=>{u||(u=setTimeout((()=>{i("p")}),4e3));var t=(c+o).split("\\n");for(var s of(c=t.pop(),t))s?d.write(Buffer.from(s,e)):d.end()})),i("s"),p.on(o,(o=>{i("o"+o.toString(e))})),p.on(t,(()=>{i("O")})),l.on(o,(o=>{i("e"+o.toString(e))})),l.on(t,(()=>{i("E")})),a.on("exit",((e,o)=>{i("r"+(o?1:e)),s.pause()}));';
 
-  let stdinStarted = false;
+  let started = false;
   let stdoutEnded = false;
   let stderrEnded = false;
   let returned = false;
@@ -511,47 +511,49 @@ async function doPipe(command, opts) {
     const parts = (recvBuf + data).split('\n');
     recvBuf = parts.pop();
     for (const part of parts) {
-      switch (part[0]) {
-        case 's':
-          if (stdinStarted) break;
-          stdinStarted = true;
+      if (started) {
+        switch (part[0]) {
+          case 'p':
+            continue;
+          case 'o':
+            if (stdoutEnded) continue;
+            process.stdout.write(Buffer.from(part.slice(1), 'base64'));
+            continue;
+          case 'O':
+            if (stdoutEnded) continue;
+            stdoutEnded = true;
+            process.stdout.end();
+            continue;
+          case 'e':
+            if (stderrEnded) continue;
+            process.stderr.write(Buffer.from(part.slice(1), 'base64'));
+            continue;
+          case 'E':
+            if (stderrEnded) continue;
+            stderrEnded = true;
+            process.stderr.end();
+            continue;
+          case 'r':
+            if (returned) continue;
+            returned = true;
+            process.stdin.pause();
+            process.exitCode = +part.slice(1);
+            continue;
+        }
+      } else {
+        if (part.trimEnd() === 's') {
+          started = true;
           process.stdin.on('data', (chunk) => {
             socket.emit('input', chunk.toString('base64') + '\n');
           });
           process.stdin.on('end', () => {
             socket.emit('input', '\n');
           });
-          break;
-        case 'p':
-          break;
-        case 'o':
-          if (stdoutEnded) break;
-          process.stdout.write(Buffer.from(part.slice(1), 'base64'));
-          break;
-        case 'O':
-          if (stdoutEnded) break;
-          stdoutEnded = true;
-          process.stdout.end();
-          break;
-        case 'e':
-          if (stderrEnded) break;
-          process.stderr.write(Buffer.from(part.slice(1), 'base64'));
-          break;
-        case 'E':
-          if (stderrEnded) break;
-          stderrEnded = true;
-          process.stderr.end();
-          break;
-        case 'r':
-          if (returned) break;
-          returned = true;
-          process.stdin.pause();
-          process.exitCode = +part.slice(1);
-          break;
-        default:
-          if (opts.debug) {
-            console.error(part);
-          }
+          continue;
+        }
+      }
+      if (opts.debug) {
+        console.error(part);
       }
     }
   });
