@@ -4,6 +4,8 @@ auth:
 engineering:
 - tests
 - type checking
+- extract some functions from lower level commands
+- split up into multiple files
 
 impossible things:
 - sso auth
