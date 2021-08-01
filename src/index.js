@@ -324,6 +324,12 @@ async function guessSingleDestination(dst, name) {
   return dst;
 }
 
+// shell helpers
+
+function shellWord(s) {
+  return '\'' + s.replace(/'/g, '\'"\'"\'') + '\'';
+}
+
 // commands
 
 async function doAuthAnon() {
@@ -475,10 +481,6 @@ async function doTerm(command, opts) {
 
 async function doPipe(command, opts) {
   const io = require('socket.io-client');
-
-  function shellWord(s) {
-    return '\'' + s.replace(/'/g, '\'"\'"\'') + '\'';
-  }
 
   // see pipe-wrap.js
   const WRAPPER_SRC = 'var e="base64",t="data",{stdin:s,stdout:o,argv:[,r]}=process,i=null,n=e=>{i&&(clearTimeout(i),i=null),o.write(e+"\\n")},a=require("child_process").spawn(r,{stdio:"pipe",shell:!0}),d="";s.setRawMode(!0),s.setEncoding("ascii"),s.on(t,(t=>{i||(i=setTimeout((()=>{n("p")}),4e3));var s=(d+t).split("\\n");for(var o of(d=s.pop(),s))o?a.stdin.write(Buffer.from(o,e)):a.stdin.end()})),n("s"),a.stdout.on(t,(t=>{n("o"+t.toString(e))})),a.stderr.on(t,(t=>{n("e"+t.toString(e))})),a.on("exit",((e,t)=>{n("r"+(t?1:e)),s.pause()}));';
