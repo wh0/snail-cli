@@ -410,12 +410,12 @@ async function doExec(command, opts) {
   });
   if (res.ok) {
     const body = await res.json();
-    process.stdout.write(body.stdout);
     process.stderr.write(body.stderr);
+    process.stdout.write(body.stdout);
   } else if (res.status === 500) {
     const body = await res.json();
-    process.stdout.write(body.stdout);
     process.stderr.write(body.stderr);
+    process.stdout.write(body.stdout);
     process.exitCode = body.signal || body.code;
   } else {
     throw new Error(`Glitch v0 projects exec response ${res.status} not ok`);
