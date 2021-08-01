@@ -569,6 +569,166 @@ async function doRsyncRsh(args) {
   await commander.program.parseAsync(['pipe', '-p', host, '--', ...args], {from: 'user'});
 }
 
+const SSHD_CONFIG = `AcceptEnv LANG LC_*
+AuthenticationMethods publickey
+ChallengeResponseAuthentication no
+HostKey /app/.data/.snail/ssh/ssh_host_rsa_key
+HostKey /app/.data/.snail/ssh/ssh_host_dsa_key
+HostKey /app/.data/.snail/ssh/ssh_host_ecdsa_key
+HostKey /app/.data/.snail/ssh/ssh_host_ed25519_key
+PrintMotd no
+Subsystem sftp /tmp/.snail/unpack/usr/lib/openssh/sftp-server
+UsePrivilegeSeparation no
+X11Forwarding yes
+`;
+
+const SCRIPT_INSTALL_SSHD = `mkdir -p /tmp/.snail
+
+if [ ! -e /tmp/.snail/stamp-sshd-unpack ]; then
+  mkdir -p /tmp/.snail/unpack
+  if [ ! -e /tmp/.snail/stamp-sshd-download ]; then
+    printf "Downloading debs\\n" >&2
+    mkdir -p /tmp/.snail/deb
+    (
+      cd /tmp/.snail/deb
+      apt-get download openssh-server openssh-sftp-server >&2
+    )
+  fi
+  printf "Unpacking debs\\n" >&2
+  dpkg -x /tmp/.snail/deb/openssh-sftp-server_*.deb /tmp/.snail/unpack
+  dpkg -x /tmp/.snail/deb/openssh-server_*.deb /tmp/.snail/unpack
+  touch /tmp/.snail/stamp-sshd-unpack
+fi`;
+
+const SCRIPT_GEN_HOST_KEY = `if [ ! -e /app/.data/.snail/stamp-sshd-key ]; then
+  printf "Generating host keys\\n" >&2
+  mkdir -p /app/.data/.snail/ssh
+  ssh-keygen -q -f /app/.data/.snail/ssh/ssh_host_rsa_key -N "" -t rsa >&2
+  ssh-keygen -l -f /app/.data/.snail/ssh/ssh_host_rsa_key >&2
+  ssh-keygen -q -f /app/.data/.snail/ssh/ssh_host_dsa_key -N "" -t dsa >&2
+  ssh-keygen -l -f /app/.data/.snail/ssh/ssh_host_dsa_key >&2
+  ssh-keygen -q -f /app/.data/.snail/ssh/ssh_host_ecdsa_key -N "" -t ecdsa >&2
+  ssh-keygen -l -f /app/.data/.snail/ssh/ssh_host_ecdsa_key >&2
+  ssh-keygen -q -f /app/.data/.snail/ssh/ssh_host_ed25519_key -N "" -t ed25519 >&2
+  ssh-keygen -l -f /app/.data/.snail/ssh/ssh_host_ed25519_key >&2
+  touch /app/.data/.snail/stamp-sshd-key
+fi`;
+
+const SCRIPT_CREATE_SSHD_CONFIG = `if [ ! -e /tmp/.snail/stamp-sshd-config ]; then
+  printf "Creating config\\n" >&2
+  mkdir -p /tmp/.snail/ssh
+  cat >/tmp/.snail/ssh/sshd_config <<EOF
+${SSHD_CONFIG}EOF
+  touch /tmp/.snail/stamp-sshd-config
+fi`;
+
+async function doSshCopyId(fakeHost, opts) {
+  const projectDomain = fakeHost.split('.')[0];
+  const project = await getProjectByDomain(projectDomain);
+  let publicKeyB64;
+  if (opts.i) {
+    const pubPath = opts.i.replace(/(\.pub)?$/, '.pub');
+    publicKeyB64 = await fs.promises.readFile(pubPath, 'base64');
+  } else {
+    const sshDir = path.join(os.homedir(), '.ssh');
+    const DEFAULT_IDS = [
+      'id_rsa',
+      'id_dsa',
+      'id_ecdsa',
+      'id_ecdsa_sk',
+      'id_ed25519',
+      'id_ed25519_sk',
+      'id_xmss',
+    ];
+    let found = false;
+    for (const t of DEFAULT_IDS) {
+      const pubPath = path.join(sshDir, `${t}.pub`);
+      try {
+        found = true;
+        publicKeyB64 = await fs.promises.readFile(pubPath, 'base64');
+        break;
+      } catch (e) {
+        if (e.code === 'ENOENT') continue;
+        console.error(e);
+      }
+    }
+    if (!found) throw new Error('No identity file found in default locations. Generate (ssh-keygen) or specify path (-i)');
+  }
+  const command = `set -eu
+mkdir -p /app/.ssh
+base64 -d >>/app/.ssh/authorized_keys <<SNAIL_EOF
+${publicKeyB64}
+SNAIL_EOF`;
+  const res = await fetch(`https://api.glitch.com/projects/${project.id}/exec`, {
+    method: 'POST',
+    headers: {
+      'Authorization': await getPersistentToken(),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      command,
+    }),
+  });
+  if (res.ok) {
+    const body = await res.json();
+    process.stderr.write(body.stderr);
+    process.stdout.write(body.stdout);
+  } else if (res.status === 500) {
+    const body = await res.json();
+    process.stderr.write(body.stderr);
+    process.stdout.write(body.stdout);
+    process.exitCode = body.signal || body.code;
+  } else {
+    throw new Error(`Glitch v0 projects exec response ${res.status} not ok`);
+  }
+}
+
+async function doSshKeyscan(fakeHost) {
+  const projectDomain = fakeHost.split('.')[0];
+  const project = await getProjectByDomain(projectDomain);
+  const command = `set -eu;
+
+${SCRIPT_GEN_HOST_KEY}
+
+cat /app/.data/.snail/ssh/ssh_host_*_key.pub`;
+  const res = await fetch(`https://api.glitch.com/projects/${project.id}/exec`, {
+    method: 'POST',
+    headers: {
+      'Authorization': await getPersistentToken(),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      command,
+    }),
+  });
+  if (res.ok) {
+    const body = await res.json();
+    process.stderr.write(body.stderr);
+    process.stdout.write(body.stdout.replace(/^.*\n/gm, `${fakeHost} $&`));
+  } else if (res.status === 500) {
+    const body = await res.json();
+    process.stderr.write(body.stderr);
+    process.stdout.write(body.stdout);
+    process.exitCode = body.signal || body.code;
+  } else {
+    throw new Error(`Glitch v0 projects exec response ${res.status} not ok`);
+  }
+}
+
+async function doSshProxy(fakeHost) {
+  const projectDomain = fakeHost.split('.')[0];
+  const script = `set -eu;
+
+${SCRIPT_INSTALL_SSHD}
+
+${SCRIPT_CREATE_SSHD_CONFIG}
+
+${SCRIPT_GEN_HOST_KEY}
+
+exec /tmp/.snail/unpack/usr/sbin/sshd -f /tmp/.snail/ssh/sshd_config -i -e`;
+  await commander.program.parseAsync(['pipe', '-p', projectDomain, '--', script], {from: 'user'});
+}
+
 async function doLogs(opts) {
   const WebSocket = require('ws');
 
@@ -1587,6 +1747,57 @@ Examples:
 commander.program
   .command('rsync-rsh <args...>', {hidden: true})
   .action(doRsyncRsh);
+const cmdSsh = commander.program
+  .command('ssh')
+  .description('interact over SSH');
+cmdSsh
+  .command('copy-id <fake_host>')
+  .description('add a local public key to authorized keys in project')
+  .option('-i <identity_file>', 'specify which public key file')
+  .addHelpText('after', `
+This is like ssh-copy-id. It's not as intelligent though. It unconditionally
+adds the public key without trying to authenticate first. Also it does not
+support ssh-agent.
+
+The fake_host is the project domain, optionally followed by a dot and
+additional labels, which Snail ignores.`)
+  .action(doSshCopyId);
+cmdSsh
+  .command('keyscan <fake_host>')
+  .description('get host keys from project for local known hosts list')
+  .addHelpText('after', `
+This is like ssh-keyscan.
+
+The fake_host is the project domain, optionally followed by a dot and
+additional labels, which Snail ignores.
+
+Example:
+    snail ssh keyscan lapis-empty-cafe.snail >>~/.ssh/known_hosts`)
+  .action(doSshKeyscan);
+cmdSsh
+  .command('proxy <fake_host>')
+  .description('set up an SSH daemon and connect to it')
+  .addHelpText('after', `
+Use this in an SSH ProxyCommand option.
+
+The fake_host is the project domain, optionally followed by a dot and
+additional labels, which Snail ignores.
+
+Example:
+    # In ~/.ssh/config
+    Host *.snail
+    User app
+    ProxyCommand snail ssh proxy %h
+    RequestTTY no
+    # Then
+    ssh my-domain.snail ls
+
+Implementation problems:
+Pseudo-terminal allocation is broken, because the daemon insists on trying to
+chown the pty device, which it isn't permitted to do. That makes it not very
+friendly for interactive terminal use, but it should work for file transfer,
+port forwarding, and programmatic access.`)
+  .action(doSshProxy);
 commander.program
   .command('logs')
   .description('watch application logs')
