@@ -1,0 +1,21 @@
+## node (engine)
+
+Continuing supporting >=10.
+10.x is no longer supported, but it plays an important role in Glitch, where
+it's the interpreter for the in-container software.
+
+## commander
+
+Can't update to 8.x until we raise our minimum node version.
+
+## socket.io-client
+
+Stuck on 2.x because Glitch's WeTTY server uses version 2.x.
+
+## ws
+
+Sticking to 7.4.x, to match engine.io-client so that we don't install a
+separate copy.
+
+Boycotting 8.x because of
+https://github.com/websockets/ws/commit/e173423c180dc1e4e6ee8938d9e4376a7a8b9757.
