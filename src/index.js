@@ -644,8 +644,8 @@ async function doSshCopyId(fakeHost, opts) {
     for (const t of DEFAULT_IDS) {
       const pubPath = path.join(sshDir, `${t}.pub`);
       try {
-        found = true;
         publicKeyB64 = await fs.promises.readFile(pubPath, 'base64');
+        found = true;
         break;
       } catch (e) {
         if (e.code === 'ENOENT') continue;
