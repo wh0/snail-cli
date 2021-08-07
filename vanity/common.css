@@ -1,0 +1,83 @@
+.block {
+  margin: 6rem 3vw;
+  max-width: 37rem;
+}
+
+.sigil {
+  padding-left: 1.7rem;
+}
+.sigil-command::before {
+  display: block;
+  float: left;
+  margin: -1px 0rem -1px -1.7rem;
+  border: 1px solid #f0f0f040;
+  border-radius: 0.25rem;
+  width: 1.2rem;
+  text-align: center;
+  color: #f0f0f040;
+  content: "$";
+}
+
+/* colors from xterm.js */
+.term-red { color: #cc0000; }
+.term-green { color: #4e9a06; }
+.term-yellow { color: #c4a000; }
+.term-blue { color: #3465a4; }
+.term-magenta { color: #75507b; }
+.term-cyan { color: #06989a; }
+b .term-red { color: #ef2929; }
+b .term-green { color: #8ae234; }
+b .term-yellow { color: #fce94f; }
+b .term-blue { color: #729fcf; }
+b .term-magenta { color: #ad7fa8; }
+b .term-cyan { color: #34e2e2; }
+
+pre .command, code .command {
+  color: #80ffc0;
+}
+pre .placeholder, code .placeholder {
+  color: #ffb0a0;
+}
+pre .control, code .control {
+  border-radius: 0.25em;
+  padding: 0em 0.25em;
+  background-color: #e0b040;
+  font-family: Source Sans Pro, sans-serif;
+  font-size: 0.75em;
+  color: #202020;
+}
+
+.footer {
+  margin: 1.25rem 0rem 0rem;
+  padding: 0rem 3vw 2.8125rem;
+  border-top: 1px solid #f0f0f040;
+  color: #f0f0f080;
+  font-size: 0.75rem;
+}
+
+body {
+  margin: 0rem;
+  background-color: #202020;
+  font-family: Source Sans Pro, sans-serif;
+  color: #f0f0f0;
+}
+*:link {
+  color: #8090f0;
+}
+*:visited {
+  color: #d080f0;
+}
+*:any-link:active {
+  color: #f08080;
+}
+code {
+  padding: 0rem 0.25em;
+  border-radius: 0.25em;
+  background-color: #101010;
+  font-family: Consolas, Menlo, monospace;
+  color: #f0f0f0c0;
+}
+pre {
+  font-family: Consolas, Menlo, monospace;
+  color: #f0f0f0c0;
+}
