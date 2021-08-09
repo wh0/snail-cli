@@ -1,0 +1,294 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Practice &mdash; Snail</title>
+<script>
+  if (window.location.protocol === 'http:' && !window.isSecureContext) {
+    const httpsUrl = new URL(window.location.href);
+    httpsUrl.protocol = 'https:';
+    window.location.replace(httpsUrl.href);
+  }
+</script>
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link rel="stylesheet" href="../common.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,400;0,600;1,400&display=swap">
+<link rel="icon" href="../snail.svg">
+<link rel="canonical" href="https://snail-cli.glitch.me/practice/">
+<style>
+  .header {
+    margin: 0em 3vw 6em;
+    padding-top: 2em;
+    max-width: 37rem;
+  }
+  .header .line {
+    line-height: 1.5em;
+    font-family: Consolas, Menlo, monospace;
+  }
+  .header .prompt {
+    color: #f0f0f080;
+  }
+  .header .home {
+    color: inherit;
+    text-decoration: none;
+  }
+  .header .snail {
+    position: absolute;
+    margin-top: -1.1em;
+  }
+  .header .command {
+    margin: 0em -0.25em;
+    border-radius: 0.25em;
+    padding: 0.25em;
+    background-color: #80ffc0;
+    font-weight: normal;
+    color: #1c1c1c;
+  }
+  .header h1 {
+    display: inline;
+    font-weight: normal;
+    font-size: 1em;
+  }
+
+  .practice {
+    display: flex;
+    height: 100%;
+  }
+  .practice .guide {
+    flex: 0 1 39rem;
+    overflow: auto;
+    position: relative;
+  }
+  .practice .header {
+    margin-left: 1rem;
+    margin-right: 1rem;
+    max-width: none;
+  }
+  .practice .block {
+    margin-left: 1rem;
+    margin-right: 1rem;
+    max-width: none;
+  }
+  .practice .footer {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  .practice .area {
+    flex: 1 1 39rem;
+    height: 100%;
+  }
+  .practice .area-container {
+    height: 100%;
+  }
+  .practice .center {
+    display: flex;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  .practice .center-content {
+    margin: 0 1em;
+    max-width: 20rem;
+  }
+  .practice .huge-icon {
+    font-size: 6em;
+  }
+  .practice .area-container iframe {
+    display: block;
+    border: medium none;
+    width: 100%;
+    height: 100%;
+  }
+
+  html {
+    height: 100%;
+  }
+  body {
+    height: 100%;
+  }
+</style>
+
+<div class="practice">
+  <div class="guide">
+    <div class="header">
+      <div class="line">
+        <span class="prompt">$</span>
+        <a class="home" href="/"><span class="snail">🐌</span><span class="command">snail</span></a>
+        #
+        <h1>Practice online</h1>
+      </div>
+    </div>
+
+    <div id="practice-create" class="block" hidden>
+      <h2>Create a practice area</h2>
+      <p>
+        <input id="practice-create-button" type="button" value="Create a practice area">
+        <span id="practice-create-done" hidden>Done!</span>
+      </p>
+      <p>
+        This remixes a project on Glitch.
+      </p>
+    </div>
+
+    <div id="practice-continue" hidden>
+      <div class="block">
+        <h2>Continue in your practice area</h2>
+        <p>
+          You have a practice area at
+          <a id="practice-project-link" target="_blank"></a>.
+        </p>
+      </div>
+    </div>
+
+    <noscript>
+      <div class="block">
+        <p>
+          You can try Snail online.
+          It requires JavaScript though.
+        </p>
+      </div>
+    </noscript>
+
+    <div class="block">
+      <h2>Installation</h2>
+      <p>
+        Snail is already installed in this practice area.
+        Let's run a command to test it out.
+      </p>
+<pre class="sigil sigil-command">
+<span class="command">snail</span> --verison
+</pre>
+    </div>
+
+    <div class="block">
+      <h2>Sign in</h2>
+      <p>
+        We'll use an anonymous account.
+      </p>
+<pre class="sigil sigil-command">
+<span class="command">snail</span> auth anon
+</pre>
+      <p>
+        Then check that you're signed in by looking up your user ID.
+      </p>
+<pre class="sigil sigil-command">
+<span class="command">snail</span> whoami -n
+</pre>
+    </div>
+
+    <div class="footer">Please do not write below this line.</div>
+  </div>
+  <div class="area">
+    <div id="no-practice-area" class="area-container" hidden>
+      <div class="center">
+        <div class="center-content">
+          <p>
+            <span class="huge-icon">😪</span>
+          </p>
+          <p>
+            This side is reserved for a later part of the tutorial.
+            You're almost there though.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div id="remix-frame-container" class="area-container" hidden></div>
+    <div id="console-frame-container" class="area-container" hidden></div>
+    <noscript>
+      <div class="area-container">
+        <div class="center">
+          <div class="center-content">
+            <p>
+              <span class="huge-icon">💀</span>
+            </p>
+            <p>
+              This side would normally be set up by a script.
+            </p>
+          </div>
+        </div>
+      </div>
+    </noscript>
+  </div>
+</div>
+
+<script>
+  const practiceCreate = document.getElementById('practice-create');
+  const practiceCreateButton = document.getElementById('practice-create-button');
+  const practiceCreateDone = document.getElementById('practice-create-done');
+  const practiceContinue = document.getElementById('practice-continue');
+  const practiceProjectLink = document.getElementById('practice-project-link');
+  const noPracticeArea = document.getElementById('no-practice-area');
+  const remixFrameContainer = document.getElementById('remix-frame-container');
+  const consoleFrameContainer = document.getElementById('console-frame-container');
+  
+  let remixFrame = null;
+  let consoleFrame = null;
+
+  (async () => {
+    try {
+      let practiceProjectDomain = window.localStorage.getItem('practice-project-domain');
+
+      if (!practiceProjectDomain) {
+        console.log('practice project domain not set');
+
+        practiceCreate.hidden = false;
+        noPracticeArea.hidden = false;
+
+        await new Promise((resolve, reject) => {
+          practiceCreateButton.onclick = (e) => {
+            practiceCreateButton.disabled = true;
+            practiceCreateButton.onclick = null;
+            resolve();
+          };
+        });
+
+        noPracticeArea.hidden = true;
+        remixFrame = document.createElement('iframe');
+        remixFrame.src = 'https://glitch.com/edit/#!/remix/snail-cli-practice';
+        remixFrameContainer.appendChild(remixFrame);
+        remixFrameContainer.hidden = false;
+
+        practiceProjectDomain = await new Promise((resolve, reject) => {
+          window.onmessage = (e) => {
+            const m = e.origin.match(/^https:\/\/([\w-]+)\.glitch\.me$/);
+            if (!m) {
+              console.log('message from', e.origin, 'wrong origin');
+              return;
+            }
+            if (e.source.parent !== remixFrame.contentWindow) {
+              console.log('message from', e.origin, 'wrong source');
+              return;
+            }
+            console.log('message from', e.origin, 'accepted');
+            window.onmessage = null;
+            resolve(m[1]);
+          };
+        });
+
+        console.log('saving practice project domain', practiceProjectDomain);
+        window.localStorage.setItem('practice-project-domain', practiceProjectDomain);
+
+        practiceCreateDone.hidden = false;
+        remixFrameContainer.hidden = true;
+        remixFrameContainer.removeChild(remixFrame);
+      } else {
+        console.log('practice project domain set', practiceProjectDomain);
+      }
+
+      practiceProjectLink.href = `https://glitch.com/~${practiceProjectDomain}`;
+      practiceProjectLink.textContent = practiceProjectDomain;
+      practiceContinue.hidden = false;
+
+      consoleFrame = document.createElement('iframe');
+      consoleFrame.src = `https://glitch.com/edit/console.html?${practiceProjectDomain}`;
+      consoleFrameContainer.appendChild(consoleFrame);
+      consoleFrameContainer.hidden = false;
+    } catch (e) {
+      console.error(e);
+    }
+  })();
+</script>
+
+<!-- Local Variables: -->
+<!-- indent-tabs-mode: nil -->
+<!-- End: -->
