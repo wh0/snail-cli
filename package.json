@@ -9,11 +9,10 @@
   "homepage": "https://snail-cli.glitch.me/",
   "license": "MIT",
   "files": [
-    "/snail.js",
     "/src"
   ],
   "bin": {
-    "snail": "./snail.js"
+    "snail": "./src/index.js"
   },
   "repository": {
     "type": "git",
