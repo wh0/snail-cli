@@ -1,0 +1,11 @@
+It would be nice to minimize our single-file bundle.
+
+However:
+
+- Let's not do that unless we can also release a source map.
+- webpack can generate a source map, but it would get messed when we add the
+  shebang in build.sh.
+- webpack has BannerPlugin that can add the shebang natively.
+- BannerPlugin makes source map generation silently fail.
+
+Thus as this time we have no satisfactory way to do it.
