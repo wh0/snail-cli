@@ -16,7 +16,7 @@
 <link rel="canonical" href="https://snail-cli.glitch.me/practice/">
 <style>
   .header {
-    margin: 0em 3vw 6em;
+    margin: 0em 3vw;
     padding-top: 2em;
     max-width: 37rem;
   }
@@ -49,7 +49,20 @@
     font-size: 1em;
   }
 
+  .intro {
+    margin-top: 2rem;
+  }
+
+  /* colors from cosmos.styl */
+  .syntax-keyword { color: #79e6d9; }
+  .syntax-def { color: #eeeeee; }
+  .syntax-operator { color: #79e6d9; }
+  .syntax-variable { color: #eeeeee; }
+  .syntax-property { color: #a4a4e4; }
+  .syntax-string { color: #fddd88; }
+
   .practice {
+    /* Framesets, eat your heart out. */
     display: flex;
     height: 100%;
   }
@@ -67,6 +80,16 @@
     margin-left: 1rem;
     margin-right: 1rem;
     max-width: none;
+  }
+  .practice .feedback {
+    color: #f0f0f080;
+  }
+  .practice .feedback a {
+    opacity: 0.5;
+    text-decoration: none;
+  }
+  .practice .feedback a:hover {
+    opacity: 1.0;
   }
   .practice .footer {
     padding-left: 1rem;
@@ -119,14 +142,37 @@
       </div>
     </div>
 
+    <div class="block intro">
+      <p>
+        You can try Snail right in your browser!
+        This practice page is available for a limited time, until either
+        we're convinced that it's not a good experience or
+        Glitch changes their embedding rules to make this impossible.
+      </p>
+    </div>
+
     <div id="practice-create" class="block" hidden>
       <h2>Create a practice area</h2>
       <p>
-        <input id="practice-create-button" type="button" value="Create a practice area">
+        <input id="practice-create-button" type="button" value="Create a practice area" class="attractive-button">
         <span id="practice-create-done" hidden>Done!</span>
       </p>
       <p>
-        This remixes a project on Glitch.
+        This remixes a project on Glitch, and you'll be using Snail from this project's terminal.
+      </p>
+      <p>
+        <strong>Completion criteria:</strong>
+      </p>
+      <ul>
+        <li>If applicable, you solve the captcha to remix the template project (usually only needed if you're not signed in)</li>
+        <li>Glitch successfully remixes the practice area for you</li>
+        <li>A terminal loads on the right side of this page</li>
+      </ul>
+      <p class="feedback">
+        How was this step for you?
+        <a href="https://github.com/wh0/snail-cli/issues/13#issuecomment-898935210" target="_blank" title="Good">👍</a>
+        <a href="https://github.com/wh0/snail-cli/issues/13#issuecomment-898935210" target="_blank" title="Bad">👎</a>
+        <a href="https://github.com/wh0/snail-cli/issues/new" target="_blank" title="There was a problem with this step">🚩</a>
       </p>
     </div>
 
@@ -135,7 +181,8 @@
         <h2>Continue in your practice area</h2>
         <p>
           You have a practice area at
-          <a id="practice-project-link" target="_blank"></a>.
+          <a id="practice-project-link" href="https://glitch.com/edit/#!/remix/snail-cli-practice" target="_blank">(unset)</a>.
+          Use the terminal at the right to work through these exercises.
         </p>
       </div>
     </div>
@@ -143,8 +190,7 @@
     <noscript>
       <div class="block">
         <p>
-          You can try Snail online.
-          It requires JavaScript though.
+          Creating a hosted practice area requires JavaScript.
         </p>
       </div>
     </noscript>
@@ -158,6 +204,18 @@
 <pre class="sigil sigil-command">
 <span class="command">snail</span> --verison
 </pre>
+      <p>
+        <strong>Completion criteria:</strong>
+      </p>
+      <ul>
+        <li>The command executes successfully and shows a version number</li>
+      </ul>
+      <p class="feedback">
+        How was this step for you?
+        <a href="https://github.com/wh0/snail-cli/issues/13#issuecomment-898940092" target="_blank" title="Good">👍</a>
+        <a href="https://github.com/wh0/snail-cli/issues/13#issuecomment-898940092" target="_blank" title="Bad">👎</a>
+        <a href="https://github.com/wh0/snail-cli/issues/new" target="_blank" title="There was a problem with this step">🚩</a>
+      </p>
     </div>
 
     <div class="block">
@@ -174,10 +232,485 @@
 <pre class="sigil sigil-command">
 <span class="command">snail</span> whoami -n
 </pre>
+      <p>
+        <strong>Completion criteria:</strong>
+      </p>
+      <ul>
+        <li>You get a numeric user ID</li>
+        <li>We won't be using this ID anywhere, so you don't have to remember it</li>
+      </ul>
+      <p class="feedback">
+        How was this step for you?
+        <a href="https://github.com/wh0/snail-cli/issues/13#issuecomment-898940092" target="_blank" title="Good">👍</a>
+        <a href="https://github.com/wh0/snail-cli/issues/13#issuecomment-898940092" target="_blank" title="Bad">👎</a>
+        <a href="https://github.com/wh0/snail-cli/issues/new" target="_blank" title="There was a problem with this step">🚩</a>
+      </p>
+    </div>
+
+    <div class="block">
+      <h2>Create a project</h2>
+      <p>
+        Let's make a project for us to practice on.
+      </p>
+      <p>
+        <a class="attractive-button" href="https://glitch.com/edit/#!/remix/snail-exercise-broken" target="_blank">Remix this practice project</a>
+      </p>
+      <p>
+        (Here's a link to <a href="https://glitch.com/edit/#!/snail-exercise-broken">take a peek without remixing</a> if you don't want to do that just now.)
+      </p>
+      <p>
+        While your practice area itself runs in a project, this will be a separate one.
+        That simulates how you'd run Snail on your local computer, outside of the project you're working on.
+      </p>
+      <p>
+        <strong>Completion criteria:</strong>
+      </p>
+      <ul>
+        <li>Glitch successfully remixes the template project for you</li>
+        <li>You remember the name of the project, which we'll need later</li>
+        <li>The project doesn't have to be in working condition (it shouldn't be, and we'll examine it later)</li>
+      </ul>
+      <p class="feedback">
+        How was this step for you?
+        <a href="https://github.com/wh0/snail-cli/issues/13#issuecomment-898941556" target="_blank" title="Good">👍</a>
+        <a href="https://github.com/wh0/snail-cli/issues/13#issuecomment-898941556" target="_blank" title="Bad">👎</a>
+        <a href="https://github.com/wh0/snail-cli/issues/new" target="_blank" title="There was a problem with this step">🚩</a>
+      </p>
+    </div>
+
+    <div class="block">
+      <h2>Set up a Git repository</h2>
+      <p>
+        Snail uses the presence of a special <code>glitch</code> Git remote to figure out what project you intend to interact with.
+        Set up a repository&mdash;we'll call it <code>badge</code>:
+      </p>
+<pre class="sigil sigil-command">
+mkdir -p .data/badge
+cd .data/badge
+git init
+</pre>
+      <p>
+        Then add that Git remote (sample project name shown; use your own):
+      </p>
+<pre class="sigil sigil-command">
+<span class="command">snail</span> remote --help
+<span class="command">snail</span> remote -p <span class="placeholder">lively-indecisive-archeology</span>
+git remote -v
+</pre>
+      <p>
+        Put the name of the project you just created after the <code>-p</code>.
+        Then, be prepared not to call that thing the "name" anymore.
+        In the Glitch API and in Snail's documentation, it's called the project's <em>domain</em> for some reason.
+      </p>
+      <p>
+        Weird that we call it the "domain," right?
+        You'd normally think that the "domain" would include the <code>.glitch.me</code> at the end.
+        But in this usage, it refers only to that first part.
+      </p>
+      <p>
+        Do the rest of this exercise from inside this repository that we've just set up.
+        Do <em>not</em> run the code below instead:
+      </p>
+<pre class="sigil sigil-command">
+echo "I solemnly swear that I'm not just skipping"
+echo "from code block to code block and I really"
+echo "did read the last paragraph."
+</pre>
+      <p>
+        <strong>Completion criteria:</strong>
+      </p>
+      <ul>
+        <li>You have a local Git repository, although it's empty right now</li>
+        <li>Git shows that you have a remote called <code>glitch</code> with a URL that looks like <code>https://<span class="placeholder">xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</span>@api.glitch.com/git/<span class="placeholder">lively-indecisive-archeology</span></code></li>
+        <li>Pushing to this remote won't work yet</li>
+      </ul>
+      <p class="feedback">
+        How was this step for you?
+        <a href="https://github.com/wh0/snail-cli/issues/13#issuecomment-898942191" target="_blank" title="Good">👍</a>
+        <a href="https://github.com/wh0/snail-cli/issues/13#issuecomment-898942191" target="_blank" title="Bad">👎</a>
+        <a href="https://github.com/wh0/snail-cli/issues/new" target="_blank" title="There was a problem with this step">🚩</a>
+      </p>
+    </div>
+
+    <div class="block">
+      <h2>Open the project's website</h2>
+      <p>
+        The template project is designed to be at a point where it needs some work done on it.
+        Let's see what it's like.
+      </p>
+<pre class="sigil sigil-command">
+<span class="command">snail</span> web --help
+<span class="command">snail</span> web app
+</pre>
+      <p>
+        This prints out the project's web URL.
+        For this in-browser terminal, select the output by dragging and press Ctrl+Insert to copy it.
+        Open that URL in a new tab.
+      </p>
+      <p>
+        <img src="site-didnt-respond.png" alt="The site immediately crashes.">
+      </p>
+      <p>
+        Ouch, the site is really not in good shape.
+        It only displays an error message, either "Site didn't respond" or "failed to start application."
+      </p>
+      <p>
+        <strong>Completion criteria:</strong>
+      </p>
+      <ul>
+        <li>The command shows the web URL</li>
+        <li>You're able to copy text from the terminal</li>
+        <li>The site opens, but it shows that it is broken</li>
+      </ul>
+      <p class="feedback">
+        How was this step for you?
+        <a href="https://github.com/wh0/snail-cli/issues/13#issuecomment-898965761" target="_blank" title="Good">👍</a>
+        <a href="https://github.com/wh0/snail-cli/issues/13#issuecomment-898965761" target="_blank" title="Bad">👎</a>
+        <a href="https://github.com/wh0/snail-cli/issues/new" target="_blank" title="There was a problem with this step">🚩</a>
+      </p>
+    </div>
+
+    <div class="block">
+      <h2>Grant access</h2>
+      <p>
+        You're signed in to Snail as an anonymous user, different from how you're signed in on a browser when you created the project.
+        Because these are separate users, so far we've only been able to look but not touch.
+        But it's clear now this project will need some work, so let's get write access.
+      </p>
+      <p>
+        We'll use the editor to invite your anonymous user account.
+        Get the editor URL from Snail and open it in a browser:
+      </p>
+<pre class="sigil sigil-command">
+<span class="command">snail</span> web edit
+</pre>
+      <p>
+        Now request an invitation:
+      </p>
+<pre class="sigil sigil-command">
+<span class="command">snail</span> ot request-join --help
+<span class="command">snail</span> ot request-join -r
+</pre>
+      <p>
+        Find the request on the top left of the editor and invite the user to join.
+      </p>
+      <p>
+        <img src="editor-invite.png" alt="Your anonymous user shows up with a randomly generated name, snail-c304 in this example.">
+      </p>
+      <p>
+        Let's see who can access the project now.
+      </p>
+<pre class="sigil sigil-command">
+<span class="command">snail</span> member --help
+<span class="command">snail</span> member list
+</pre>
+      <p>
+        <strong>Completion criteria:</strong>
+      </p>
+      <ul>
+        <li>The request to join appears in the editor</li>
+        <li>Your anonymous user shows up in the member list</li>
+      </ul>
+      <p class="feedback">
+        How was this step for you?
+        <a href="https://github.com/wh0/snail-cli/issues/13#issuecomment-898968729" target="_blank" title="Good">👍</a>
+        <a href="https://github.com/wh0/snail-cli/issues/13#issuecomment-898968729" target="_blank" title="Bad">👎</a>
+        <a href="https://github.com/wh0/snail-cli/issues/new" target="_blank" title="There was a problem with this step">🚩</a>
+      </p>
+    </div>
+
+    <div class="block">
+      <h2>Check the logs</h2>
+      <p>
+        The error shown on the website doesn't tell us why the application didn't respond.
+        We'll want to look at the logs for why this is happening:
+      </p>
+<pre class="sigil sigil-command">
+<span class="command">snail</span> logs --help
+<span class="command">snail</span> logs
+</pre>
+      <p>
+        Then, reload the project's website and see what the project logs.
+      </p>
+<pre>
+/app/server.js:38
+      .end(err.stack);
+           ^
+
+ReferenceError: err is not defined
+</pre>
+      <p>
+        Let's look there.
+        We'll need a copy of the code though.
+      </p>
+      <p>
+        <strong>Completion criteria:</strong>
+      </p>
+      <ul>
+        <li>You have permission to view the logs</li>
+        <li>Details about the error show up in the logs</li>
+      </ul>
+      <p class="feedback">
+        How was this step for you?
+        <a href="https://github.com/wh0/snail-cli/issues/13#issuecomment-898987623" target="_blank" title="Good">👍</a>
+        <a href="https://github.com/wh0/snail-cli/issues/13#issuecomment-898987623" target="_blank" title="Bad">👎</a>
+        <a href="https://github.com/wh0/snail-cli/issues/new" target="_blank" title="There was a problem with this step">🚩</a>
+      </p>
+    </div>
+
+    <div class="block">
+      <h2>Pull the code</h2>
+      <p>
+        The Git repository is indeed a Git repository, no big surprise there.
+        Go ahead and pull.
+      </p>
+<pre class="sigil sigil-command">
+git pull glitch master
+</pre>
+      <p>
+        <strong>Completion criteria:</strong>
+      </p>
+      <ul>
+        <li>You have a copy of the version controlled files in your local repo</li>
+      </ul>
+      <p class="feedback">
+        How was this step for you?
+        <a href="https://github.com/wh0/snail-cli/issues/13#issuecomment-898987694" target="_blank" title="Good">👍</a>
+        <a href="https://github.com/wh0/snail-cli/issues/13#issuecomment-898987694" target="_blank" title="Bad">👎</a>
+        <a href="https://github.com/wh0/snail-cli/issues/new" target="_blank" title="There was a problem with this step">🚩</a>
+      </p>
+    </div>
+
+    <div class="block">
+      <h2>Fix the error reporting</h2>
+      <p>
+        Now we can take a look at the code:
+      </p>
+<pre class="sigil sigil-command">
+less -N server.js
+</pre>
+      <p>
+        The error happens here:
+      </p>
+<pre>
+     35   } <span class="syntax-keyword">catch</span> (<span class="syntax-def">e</span>) {
+...
+     38       .<span class="syntax-property">end</span>(<span class="syntax-variable">err</span>.<span class="syntax-property">stack</span>);
+</pre>
+      <p>
+        This exercise is not about how to solve JavaScript problems or how to use command line text editors.
+        The code mistakenly uses <code>err</code> instead of <code>e</code>.
+        Here's a one-liner to edit in the fix, so we can get on with things:
+      </p>
+<pre class="sigil sigil-command">
+sed -i '38s/err/e/' server.js
+</pre>
+      <p>
+        ... and set up your Git user info (sample info shown; use your own):
+      </p>
+<pre class="sigil sigil-command">
+git config user.name '<span class="placeholder">wh0</span>'
+git config user.email '<span class="placeholder">none</span>'
+</pre>
+      <p>
+        ... and commit the change:
+      </p>
+<pre class="sigil sigil-command">
+git commit -am "fix error reporting"
+</pre>
+      <p>
+        <strong>Completion criteria:</strong>
+      </p>
+      <ul>
+        <li>You have a commit with the fix locally</li>
+        <li>That fix, by the way, is not deployed yet</li>
+        <li>The project still shouldn't work, that is to say</li>
+        <li>Also when you're doing this on your own computer, you'll have a text editor, so feel free not to learn anything about <code>sed</code> here</li>
+      </ul>
+      <p class="feedback">
+        How was this step for you?
+        <a href="https://github.com/wh0/snail-cli/issues/13#issuecomment-899003590" target="_blank" title="Good">👍</a>
+        <a href="https://github.com/wh0/snail-cli/issues/13#issuecomment-899003590" target="_blank" title="Bad">👎</a>
+        <a href="https://github.com/wh0/snail-cli/issues/new" target="_blank" title="There was a problem with this step">🚩</a>
+      </p>
+    </div>
+
+    <div class="block">
+      <h2>Deploy the change</h2>
+      <p>
+        We need to set up the project to receive Git <a href="https://www.git-scm.com/docs/git-config#Documentation/git-config.txt-receivedenyCurrentBranch">pushes to its current branch</a>.
+        To set that, we run a <code>git config</code> command in the project container, i.e., not locally or in our practice area.
+        We can use Snail to run a command in the project:
+      </p>
+<pre class="sigil sigil-command">
+<span class="command">snail</span> exec --help
+<span class="command">snail</span> exec -- receive.denyCurrentBranch updateInstead
+</pre>
+      <p>
+        Then push the change:
+      </p>
+<pre class="sigil sigil-command">
+git push glitch master
+</pre>
+      <p>
+        ... and have Glitch run the new version:
+      </p>
+<pre class="sigil sigil-command">
+<span class="command">snail</span> exec -- refresh
+</pre>
+      <p>
+        Now let's reload the project's website and have another look.
+      </p>
+      <p>
+        <strong>Completion criteria:</strong>
+      </p>
+      <ul>
+        <li>The Git push succeeds</li>
+        <li>The "Site didn't respond" error no longer occurs</li>
+        <li>The site still isn't working; remember that we've only fixed the error reporting so we can find out why it's not working</li>
+      </ul>
+      <p class="feedback">
+        How was this step for you?
+        <a href="https://github.com/wh0/snail-cli/issues/13#issuecomment-899004983" target="_blank" title="Good">👍</a>
+        <a href="https://github.com/wh0/snail-cli/issues/13#issuecomment-899004983" target="_blank" title="Bad">👎</a>
+        <a href="https://github.com/wh0/snail-cli/issues/new" target="_blank" title="There was a problem with this step">🚩</a>
+      </p>
+    </div>
+
+    <div class="block">
+      <h2>Open the project's website, take two</h2>
+      <p>
+        Error reporting should now work.
+        It should now respond with a stack trace when we try to load the page and it fails.
+        So let's see what that is.
+      </p>
+<pre>
+Error: ENOENT: no such file or directory, open '.data/me.html'
+...
+    at Server.&lt;anonymous&gt; (/app/server.js:13:23)
+</pre>
+      <p>
+        According to this, there's a file missing.
+        The code that uses it is like this:
+      </p>
+<pre>
+<span class="syntax-keyword">const</span> <span class="syntax-def">me</span> <span class="syntax-operator">=</span> <span class="syntax-variable">fs</span>.<span class="syntax-property">readFileSync</span>(<span class="syntax-string">'.data/me.html'</span>, <span class="syntax-string">'utf-8'</span>).<span class="syntax-property">trim</span>();
+...
+  .<span class="syntax-property">end</span>(<span class="syntax-string">`&lt;!doctype html&gt;</span>
+...
+<span class="syntax-string">I'm &lt;span class="me"&gt;${</span><span class="syntax-variable">me</span><span class="syntax-string">}&lt;/span&gt;,</span>
+<span class="syntax-string">and I completed</span> ...
+</pre>
+      <p>
+        All we have to do is add a file with your name.
+      </p>
+      <p>
+        <strong>Completion criteria:</strong>
+      </p>
+      <ul>
+        <li>The site serves up an error stack trace</li>
+        <li>The error matches the listing above</li>
+      </ul>
+      <p class="feedback">
+        How was this step for you?
+        <a href="https://github.com/wh0/snail-cli/issues/13#issuecomment-899094273" target="_blank" title="Good">👍</a>
+        <a href="https://github.com/wh0/snail-cli/issues/13#issuecomment-899094273" target="_blank" title="Bad">👎</a>
+        <a href="https://github.com/wh0/snail-cli/issues/new" target="_blank" title="There was a problem with this step">🚩</a>
+      </p>
+    </div>
+
+    <div class="block">
+      <h2>Add your name</h2>
+      <p>
+        We can reasonably use Git to deploy code changes, but we normally wouldn't put data files under version control.
+        Snail has other facilities for doing general file management.
+        First let's enter an interactive shell to take a look around the project filesystem.
+      </p>
+<pre class="sigil sigil-command">
+<span class="command">snail</span> term --help
+<span class="command">snail</span> term
+ls -al
+mkdir -p .data
+ls -al .data
+<span class="control">Ctrl-D</span>
+</pre>
+      <p>
+        Here, the <code>ls</code> and <code>mkdir</code> are things you type while connected to the <code><span class="command">snail</span> term</code> session.
+        The <code>.data</code> directory might already exist.
+      </p>
+      <p>
+        Make a file that we'll upload:
+      </p>
+<pre class="sigil sigil-command">
+git config user.name >/tmp/me.html
+</pre>
+      <p>
+        Snail hasn't settled on a best way to transfer files, but the <code>rsync</code> wrapper is pretty friendly.
+        Use the project domain as the "host" for rsync.
+        We'll use that (sample project domain shown; use your own):
+      </p>
+<pre class="sigil sigil-command">
+<span class="command">snail</span> rsync --help
+<span class="command">snail</span> rsync -- /tmp/me.html <span class="placeholder">lively-indecisive-archeology</span>:.data
+</pre>
+      <p>
+        If you're like me, you'll have an urge to look again:
+      </p>
+<pre class="sigil sigil-command">
+<span class="command">snail</span> term
+ls -al .data
+<span class="control">Ctrl-D</span>
+</pre>
+      <p>
+        <strong>Completion criteria:</strong>
+      </p>
+      <ul>
+        <li>The <code>me.html</code> file is present in the project's <code>.data</code> directory</li>
+      </ul>
+      <p class="feedback">
+        How was this step for you?
+        <a href="https://github.com/wh0/snail-cli/issues/13#issuecomment-899112353" target="_blank" title="Good">👍</a>
+        <a href="https://github.com/wh0/snail-cli/issues/13#issuecomment-899112353" target="_blank" title="Bad">👎</a>
+        <a href="https://github.com/wh0/snail-cli/issues/new" target="_blank" title="There was a problem with this step">🚩</a>
+      </p>
+    </div>
+
+    <div class="block">
+      <h2>Open the project's website, take three</h2>
+      <p>
+        This should be it for fixing up the project.
+      </p>
+      <p>
+        Go ahead and open the project website again.
+        You'll now have a page to commemorate that you completed this practice exercise.
+      </p>
+      <p>
+        <strong>Completion criteria:</strong>
+      </p>
+      <ul>
+        <li>The site should serve an actual page</li>
+        <li>The page should have the name you entered earlier</li>
+      </ul>
+      <p class="feedback">
+        How was this step for you?
+        <a href="https://github.com/wh0/snail-cli/issues/13#issuecomment-899114421" target="_blank" title="Good">👍</a>
+        <a href="https://github.com/wh0/snail-cli/issues/13#issuecomment-899114421" target="_blank" title="Bad">👎</a>
+        <a href="https://github.com/wh0/snail-cli/issues/new" target="_blank" title="There was a problem with this step">🚩</a>
+      </p>
+    </div>
+
+    <div class="block">
+      <p>
+        You're done!
+        This practice area is yours to keep.
+        If you continue to use it, be advised that files you create outside of the <code>.data</code> directory are public.
+        Prefer to create Git repositories inside the <code>.data</code> directory like we did in the exercise, so that the Git access token in the remote doesn't get exposed.
+      </p>
     </div>
 
     <div class="footer">Please do not write below this line.</div>
   </div>
+
   <div class="area">
     <div id="no-practice-area" class="area-container" hidden>
       <div class="center">

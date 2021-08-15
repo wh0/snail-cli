@@ -49,6 +49,25 @@ pre .control, code .control {
   color: #202020;
 }
 
+.attractive-button {
+  display: inline-block;
+  border: 0.1875em double #80ffc0;
+  border-radius: 0.25em;
+  padding: 0.3125em 0.5625em;
+  background-color: #80ffc0;
+  background-clip: padding-box;
+  color: #1c1c1c;
+  font: inherit;
+  text-decoration: none;
+}
+.attractive-button:link, .attractive-button:visited, .attractive-button:any-link:active {
+  color: #1c1c1c;
+}
+.attractive-button:disabled {
+  border: 0.1875em solid #608070;
+  background-color: #608070;
+}
+
 .footer {
   margin: 1.25rem 0rem 0rem;
   padding: 0rem 3vw 2.8125rem;
