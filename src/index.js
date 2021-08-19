@@ -331,6 +331,59 @@ function shellWord(s) {
   return '\'' + s.replace(/'/g, '\'"\'"\'') + '\'';
 }
 
+// interaction
+
+function noCompletions(line) {
+  return [];
+}
+
+function prompt(query) {
+  const readline = require('readline');
+  return new Promise((resolve, reject) => {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stderr,
+      completer: noCompletions,
+      historySize: 0,
+    });
+    rl.on('close', () => {
+      reject(new Error('readline close'));
+    });
+    rl.question(query, (answer) => {
+      resolve(answer);
+      rl.close();
+    });
+  });
+}
+
+function promptPassword() {
+  const readline = require('readline');
+  return new Promise((resolve, reject) => {
+    const maskedStderr = Object.create(process.stdout);
+    maskedStderr.write = (chunk, encoding, callback) => {
+      const masked = chunk
+        .replace(
+          // eslint-disable-next-line no-control-regex
+          /(^Password: )|(\x1b\x5b[\x20-\x3f]*[\x40-\x7f])|(.)/g,
+          (_, p, cs, ch) => p || cs || '*',
+        );
+      process.stderr.write(masked);
+    };
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: maskedStderr,
+      completer: noCompletions,
+    });
+    rl.on('close', () => {
+      reject(new Error('readline close'));
+    });
+    rl.question('Password: ', (answer) => {
+      resolve(answer);
+      rl.close();
+    });
+  });
+}
+
 // commands
 
 async function doAuthAnon() {
