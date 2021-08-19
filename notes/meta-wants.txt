@@ -1,6 +1,3 @@
-auth:
-- password
-
 engineering:
 - tests
 - type checking

@@ -423,6 +423,25 @@ async function doAuthCode(code) {
   await savePersistentToken(body.user.persistentToken);
 }
 
+async function doAuthPassword(email, password) {
+  await failIfPersistentTokenSaved();
+
+  const res = await fetch('https://api.glitch.com/v1/auth/password', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      emailAddress: email || await prompt('Email: '),
+      password: password || await promptPassword(),
+    }),
+  });
+  if (!res.ok) throw new Error(`Glitch auth password response ${res.status} not ok`);
+  const body = await res.json();
+
+  await savePersistentToken(body.user.persistentToken);
+}
+
 async function doWhoami(opts) {
   const {user} = await boot();
   if (opts.numeric) {
@@ -1731,6 +1750,10 @@ cmdAuth
   .addHelpText('after', `
 Request a code on the web or with snail auth send-email.`)
   .action(doAuthCode);
+cmdAuth
+  .command('password [email] [password]')
+  .description('authenticate with email address and password')
+  .action(doAuthPassword);
 commander.program
   .command('whoami')
   .description('show user login')
