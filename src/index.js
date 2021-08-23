@@ -1787,7 +1787,11 @@ commander.program
   .option('--no-set-transports', 'do not set a custom list of socket.io transports')
   .option('--no-raw', 'do not alter stdin tty mode')
   .addHelpText('after', `
-If command is provided, additionally sends that right after connecting.`)
+If command is provided, additionally sends that right after connecting.
+
+Projects may go to sleep quickly when it only has a terminal connection open.
+Using snail ot status creates an OT connection, which is what normally prevents
+this when editing on the web.`)
   .action(doTerm);
 commander.program
   .command('pipe <command...>')
