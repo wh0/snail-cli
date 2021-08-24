@@ -399,7 +399,11 @@ async function doAuthAnon() {
   await savePersistentToken(user.persistentToken);
 }
 
-async function doAuthSendEmail(email) {
+async function doAuthSendEmail(email, opts) {
+  if (opts.interactive) {
+    await failIfPersistentTokenSaved();
+  }
+
   const emailPrompted = email || await prompt('Email: ');
   const res = await fetch('https://api.glitch.com/v1/auth/email/', {
     method: 'POST',
@@ -411,6 +415,17 @@ async function doAuthSendEmail(email) {
     }),
   });
   if (!res.ok) throw new Error(`Glitch auth email response ${res.status} not ok`);
+
+  if (opts.interactive) {
+    const codePrompted = await prompt('Code: ');
+    const res = await fetch(`https://api.glitch.com/v1/auth/email/${codePrompted}`, {
+      method: 'POST',
+    });
+    if (!res.ok) throw new Error(`Glitch auth email response ${res.status} not ok`);
+    const body = await res.json();
+
+    await savePersistentToken(body.user.persistentToken);
+  }
 }
 
 async function doAuthCode(code) {
@@ -1746,6 +1761,7 @@ cmdAuth
 cmdAuth
   .command('send-email [email]')
   .description('request a sign-in code over email')
+  .option('-i, --interactive', 'additionally prompt for code and complete sign-in')
   .addHelpText('after', `
 Use the code in the email with snail auth code to authenticate.`)
   .action(doAuthSendEmail);
