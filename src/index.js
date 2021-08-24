@@ -400,13 +400,14 @@ async function doAuthAnon() {
 }
 
 async function doAuthSendEmail(email) {
+  const emailPrompted = email || await prompt('Email: ');
   const res = await fetch('https://api.glitch.com/v1/auth/email/', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      emailAddress: email,
+      emailAddress: emailPrompted,
     }),
   });
   if (!res.ok) throw new Error(`Glitch auth email response ${res.status} not ok`);
@@ -415,7 +416,8 @@ async function doAuthSendEmail(email) {
 async function doAuthCode(code) {
   await failIfPersistentTokenSaved();
 
-  const res = await fetch(`https://api.glitch.com/v1/auth/email/${code}`, {
+  const codePrompted = code || await prompt('Code: ');
+  const res = await fetch(`https://api.glitch.com/v1/auth/email/${codePrompted}`, {
     method: 'POST',
   });
   if (!res.ok) throw new Error(`Glitch auth email response ${res.status} not ok`);
@@ -427,14 +429,16 @@ async function doAuthCode(code) {
 async function doAuthPassword(email, password) {
   await failIfPersistentTokenSaved();
 
+  const emailPrompted = email || await prompt('Email: ');
+  const passwordPrompted = password || await promptPassword();
   const res = await fetch('https://api.glitch.com/v1/auth/password', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      emailAddress: email || await prompt('Email: '),
-      password: password || await promptPassword(),
+      emailAddress: emailPrompted,
+      password: passwordPrompted,
     }),
   });
   if (!res.ok) throw new Error(`Glitch auth password response ${res.status} not ok`);
@@ -1740,13 +1744,13 @@ cmdAuth
   .description('create a new anonymous user')
   .action(doAuthAnon);
 cmdAuth
-  .command('send-email <email>')
+  .command('send-email [email]')
   .description('request a sign-in code over email')
   .addHelpText('after', `
 Use the code in the email with snail auth code to authenticate.`)
   .action(doAuthSendEmail);
 cmdAuth
-  .command('code <code>')
+  .command('code [code]')
   .description('authenticate with sign-in code')
   .addHelpText('after', `
 Request a code on the web or with snail auth send-email.`)
