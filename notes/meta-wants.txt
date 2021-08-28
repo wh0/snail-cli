@@ -7,3 +7,4 @@ engineering:
 impossible things:
 - sso auth
 - maybe enable minimize
+- captcha (for anonymous project creation and soon for auth)
