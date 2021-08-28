@@ -33,7 +33,7 @@ processStdin.setEncoding('ascii');
 processStdin.on(data, (chunk) => {
   if (!pingTimer) {
     pingTimer = setTimeout(() => {
-      writeln('p');
+      writeln(')p');
     }, 4000);
   }
   var parts = (recvBuf + chunk).split('\n');
@@ -47,18 +47,18 @@ processStdin.on(data, (chunk) => {
   }
 });
 
-writeln('s');
+writeln(')s');
 
 child.stdout.on(data, (chunk) => {
-  writeln('o' + chunk.toString(base64));
+  writeln(')o' + chunk.toString(base64));
 });
 
 child.stderr.on(data, (chunk) => {
-  writeln('e' + chunk.toString(base64));
+  writeln(')e' + chunk.toString(base64));
 });
 
 child.on('exit', (code, signal) => {
   var rv = signal ? 1 : code;
-  writeln('r' + rv);
+  writeln(')r' + rv);
   processStdin.pause();
 });

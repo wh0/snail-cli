@@ -576,7 +576,7 @@ async function doPipe(command, opts) {
   const io = require('socket.io-client');
 
   // see pipe-wrap.js
-  const WRAPPER_SRC = 'var e="base64",t="data",{stdin:s,stdout:o,argv:[,r]}=process,i=null,n=e=>{i&&(clearTimeout(i),i=null),o.write(e+"\\n")},a=require("child_process").spawn(r,{stdio:"pipe",shell:!0}),d="";s.setRawMode(!0),s.setEncoding("ascii"),s.on(t,(t=>{i||(i=setTimeout((()=>{n("p")}),4e3));var s=(d+t).split("\\n");for(var o of(d=s.pop(),s))o?a.stdin.write(Buffer.from(o,e)):a.stdin.end()})),n("s"),a.stdout.on(t,(t=>{n("o"+t.toString(e))})),a.stderr.on(t,(t=>{n("e"+t.toString(e))})),a.on("exit",((e,t)=>{n("r"+(t?1:e)),s.pause()}));';
+  const WRAPPER_SRC = 'var e="base64",t="data",{stdin:s,stdout:o,argv:[,r]}=process,i=null,n=e=>{i&&(clearTimeout(i),i=null),o.write(e+"\\n")},a=require("child_process").spawn(r,{stdio:"pipe",shell:!0}),d="";s.setRawMode(!0),s.setEncoding("ascii"),s.on(t,(t=>{i||(i=setTimeout((()=>{n(")p")}),4e3));var s=(d+t).split("\\n");for(var o of(d=s.pop(),s))o?a.stdin.write(Buffer.from(o,e)):a.stdin.end()})),n(")s"),a.stdout.on(t,(t=>{n(")o"+t.toString(e))})),a.stderr.on(t,(t=>{n(")e"+t.toString(e))})),a.on("exit",((e,t)=>{n(")r"+(t?1:e)),s.pause()}));';
 
   let started = false;
   let returned = false;
@@ -604,15 +604,25 @@ async function doPipe(command, opts) {
     const parts = (recvBuf + data).split('\n');
     recvBuf = parts.pop();
     for (const part of parts) {
-      if (started) {
-        switch (part[0]) {
+      if (part[0] === ')') {
+        switch (part[1]) {
+          case 's':
+            if (started) continue;
+            started = true;
+            process.stdin.on('data', (chunk) => {
+              socket.emit('input', chunk.toString('base64') + '\n');
+            });
+            process.stdin.on('end', () => {
+              socket.emit('input', '\n');
+            });
+            continue;
           case 'p':
             continue;
           case 'o':
-            process.stdout.write(Buffer.from(part.slice(1), 'base64'));
+            process.stdout.write(Buffer.from(part.slice(2), 'base64'));
             continue;
           case 'e':
-            process.stderr.write(Buffer.from(part.slice(1), 'base64'));
+            process.stderr.write(Buffer.from(part.slice(2), 'base64'));
             continue;
           case 'r':
             if (returned) continue;
@@ -620,17 +630,6 @@ async function doPipe(command, opts) {
             process.stdin.pause();
             process.exitCode = +part.slice(1);
             continue;
-        }
-      } else {
-        if (part.trimEnd() === 's') {
-          started = true;
-          process.stdin.on('data', (chunk) => {
-            socket.emit('input', chunk.toString('base64') + '\n');
-          });
-          process.stdin.on('end', () => {
-            socket.emit('input', '\n');
-          });
-          continue;
         }
       }
       if (opts.debug) {
