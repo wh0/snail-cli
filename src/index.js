@@ -782,7 +782,7 @@ SNAIL_EOF`;
 async function doSshKeyscan(fakeHost) {
   const projectDomain = fakeHost.split('.')[0];
   const project = await getProjectByDomain(projectDomain);
-  const command = `set -eu;
+  const command = `set -eu
 
 ${SCRIPT_GEN_HOST_KEY}
 
@@ -813,7 +813,7 @@ cat /app/.data/.snail/ssh/ssh_host_*_key.pub`;
 
 async function doSshProxy(fakeHost) {
   const projectDomain = fakeHost.split('.')[0];
-  const script = `set -eu;
+  const script = `set -eu
 
 ${SCRIPT_INSTALL_SSHD}
 
