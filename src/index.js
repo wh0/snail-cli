@@ -643,6 +643,10 @@ async function doPipe(command, opts) {
   socket.once('logout', () => {
     done = true;
     socket.close();
+    if (!returned) {
+      console.error('Received console logout without receiving return message');
+      process.exitCode = 1;
+    }
   });
 }
 
