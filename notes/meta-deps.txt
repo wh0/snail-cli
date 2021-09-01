@@ -26,5 +26,6 @@ Stuck on 2.x because Glitch's WeTTY server uses version 2.x.
 Sticking to 7.4.x, to match engine.io-client so that we don't install a
 separate copy.
 
-Boycotting 8.x because of
-https://github.com/websockets/ws/commit/e173423c180dc1e4e6ee8938d9e4376a7a8b9757.
+Boycotting 8.x because they decided text messages would be prestented as
+buffers.
+https://github.com/websockets/ws/commit/e173423c180dc1e4e6ee8938d9e4376a7a8b9757
