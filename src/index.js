@@ -524,9 +524,20 @@ async function doExec(command, opts) {
 async function doTerm(command, opts) {
   const io = require('socket.io-client');
 
+  const projectDomain = await getProjectDomain(opts);
+  const project = await getProjectByDomain(projectDomain);
+  const res = await fetch(`https://api.glitch.com/v1/projects/${project.id}/singlePurposeTokens/terminal`, {
+    method: 'POST',
+    headers: {
+      'Authorization': await getPersistentToken(),
+    }
+  });
+  if (!res.ok) throw new Error(`Glitch projects single purpose tokens terminal response ${res.status} not ok`);
+  const body = await res.json();
+
   let done = false;
   const ioOpts = {
-    path: `/${await getProjectDomain(opts)}/console/${await getPersistentToken()}/socket.io`,
+    path: `/console/${body.token}/socket.io`,
   };
   if (opts.setTransports) {
     ioOpts.transports = ['websocket'];
