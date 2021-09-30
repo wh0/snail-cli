@@ -1738,10 +1738,19 @@ async function doWebEdit(opts) {
 
 async function doWebTerm(opts) {
   const projectDomain = await getProjectDomain(opts);
+  const project = await getProjectByDomain(projectDomain);
   if (opts.cap) {
-    console.log(`https://api.glitch.com/${projectDomain}/console/${await getPersistentToken()}/`);
+    const res = await fetch(`https://api.glitch.com/v1/projects/${project.id}/singlePurposeTokens/terminal`, {
+      method: 'POST',
+      headers: {
+        'Authorization': await getPersistentToken(),
+      }
+    });
+    if (!res.ok) throw new Error(`Glitch projects single purpose tokens terminal response ${res.status} not ok`);
+    const body = await res.json();
+    console.log(`https://api.glitch.com/console/${body.token}/`);
   } else {
-    console.log(`https://glitch.com/edit/console.html?${projectDomain}`);
+    console.log(`https://glitch.com/edit/console.html?${project.id}`);
   }
 }
 
