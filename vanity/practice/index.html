@@ -814,8 +814,15 @@ ls -al .data
       practiceProjectLink.textContent = practiceProjectDomain;
       practiceContinue.hidden = false;
 
+      const res = await fetch(`https://api.glitch.com/v1/projects/by/domain?domain=${practiceProjectDomain}`);
+      if (!res.ok) throw new Error(`Glitch projects by domain response ${res.status} not ok`);
+      const body = await res.json();
+      if (!(practiceProjectDomain in body)) throw new Error(`Glitch project domain ${practiceProjectDomain} not found`);
+      const practiceProjectId = body[practiceProjectDomain].id;
+      console.log('practice project id', practiceProjectId);
+
       consoleFrame = document.createElement('iframe');
-      consoleFrame.src = `https://glitch.com/edit/console.html?${practiceProjectDomain}`;
+      consoleFrame.src = `https://glitch.com/edit/console.html?${practiceProjectId}`;
       consoleFrameContainer.appendChild(consoleFrame);
       consoleFrameContainer.hidden = false;
     } catch (e) {
