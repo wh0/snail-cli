@@ -1,5 +1,5 @@
 #!/bin/sh -eux
-webpack
+webpack --json >dist/stats.json
 {
   head -n1 src/index.js
   cat dist/main.js
