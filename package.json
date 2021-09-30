@@ -24,7 +24,7 @@
   "dependencies": {
     "commander": "^7.2.0",
     "form-data": "^4.0.0",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "^2.6.5",
     "socket.io-client": "^2.4.0",
     "ws": "~7.4.6"
   },
@@ -32,8 +32,8 @@
     "eslint": "^7.32.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-plugin-import": "^2.24.2",
-    "terser": "^5.7.2",
-    "webpack": "^5.51.1",
+    "terser": "^5.9.0",
+    "webpack": "^5.55.1",
     "webpack-cli": "^4.8.0"
   },
   "engines": {
