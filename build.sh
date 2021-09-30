@@ -1,5 +1,5 @@
 #!/bin/sh -eux
-webpack -c webpack.config.js
+webpack
 {
   head -n1 src/index.js
   cat dist/main.js
