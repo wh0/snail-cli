@@ -11,6 +11,7 @@ const util = require('util');
 
 const commander = require('commander');
 const fetch = require('node-fetch').default;
+const columnify = require('columnify');
 
 const packageMeta = require('../package.json');
 
@@ -887,6 +888,21 @@ async function doStop(opts) {
     },
   });
   if (!res.ok) throw new Error(`Glitch projects stop response ${res.status} not ok`);
+}
+
+async function doInfo(opts) {
+  const projectDomain = await getProjectDomain(opts);
+  const project = await getProjectByDomain(projectDomain);
+  let filteredProjectProps = {
+    "ID": project.id,
+    "Domain": project.domain,
+    "Description": project.description,
+    "Privacy": project.privacy,
+    "Application type": project.appType,
+    "Last edited": project.updatedAt,
+    "Created at": project.createdAt
+  }
+  console.log(columnify(filteredProjectProps, { showHeaders: false }))
 }
 
 async function doDownload(opts) {
@@ -1946,6 +1962,11 @@ commander.program
   .description('stop project container')
   .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
   .action(doStop);
+commander.program
+  .command('info')
+  .description('show current project info')
+  .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
+  .action(doInfo);
 commander.program
   .command('download')
   .description('download project as tarball')
