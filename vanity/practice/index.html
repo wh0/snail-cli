@@ -546,7 +546,8 @@ git commit -am "fix error reporting"
       </p>
 <pre class="sigil sigil-command">
 <span class="command">snail</span> exec --help
-<span class="command">snail</span> exec -- receive.denyCurrentBranch updateInstead
+<span class="command">snail</span> exec -- git config \
+  receive.denyCurrentBranch updateInstead
 </pre>
       <p>
         Then push the change:
