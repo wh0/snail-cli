@@ -912,7 +912,7 @@ async function doDownload(opts) {
 async function doAPolicy(opts) {
   const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
-  const res = await fetch(`https://api.glitch.com/v1/projects/${project.id}/policy`, {
+  const res = await fetch(`https://api.glitch.com/v1/projects/${project.id}/policy?contentType=${encodeURIComponent(opts.type)}`, {
     headers: {
       'Authorization': await getPersistentToken(),
     },
@@ -927,7 +927,7 @@ async function doAPush(src, opts) {
 
   const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
-  const policyRes = await fetch(`https://api.glitch.com/v1/projects/${project.id}/policy`, {
+  const policyRes = await fetch(`https://api.glitch.com/v1/projects/${project.id}/policy?contentType=${encodeURIComponent(opts.type)}`, {
     headers: {
       'Authorization': await getPersistentToken(),
     },
@@ -958,7 +958,7 @@ async function doAPush(src, opts) {
   // https://github.com/node-fetch/node-fetch/pull/1020
   const uploadRes = await util.promisify(form.submit).call(form, `https://s3.amazonaws.com/${bucket}`);
   if (uploadRes.statusCode < 200 || uploadRes.statusCode >= 300) throw new Error(`S3 upload response ${uploadRes.statusCode} not ok`);
-  console.log(`https://cdn.glitch.com/${encodeURIComponent(key)}?v=${Date.now()}`);
+  console.log(`https://cdn.glitch.me/${encodeURIComponent(key)}?v=${Date.now()}`);
 }
 
 async function doOtPush(src, dst, opts) {
@@ -1961,6 +1961,7 @@ cmdAsset
   .command('policy')
   .description('provision an S3 POST policy for asset upload')
   .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
+  .option('-t, --type <type>', 'asset MIME type', 'application/octet-stream')
   .action(doAPolicy);
 cmdAsset
   .command('push <src>')
