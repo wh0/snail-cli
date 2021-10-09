@@ -1,4 +1,5 @@
 #!/bin/sh -eux
+mkdir -p dist
 webpack --json >dist/stats.json
 {
   head -n1 src/index.js
