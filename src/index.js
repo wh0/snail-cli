@@ -927,7 +927,7 @@ async function doAPush(src, opts) {
 
   const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
-  const policyRes = await fetch(`https://api.glitch.com/v1/projects/${project.id}/policy`, {
+  const policyRes = await fetch(`https://api.glitch.com/v1/projects/${project.id}/policy?contentType=${encodeURIComponent(opts.type)}`, {
     headers: {
       'Authorization': await getPersistentToken(),
     },
