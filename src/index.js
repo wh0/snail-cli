@@ -912,7 +912,7 @@ async function doDownload(opts) {
 async function doAPolicy(opts) {
   const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
-  const res = await fetch(`https://api.glitch.com/v1/projects/${project.id}/policy`, {
+  const res = await fetch(`https://api.glitch.com/v1/projects/${project.id}/policy?contentType=${encodeURIComponent(opts.type)}`, {
     headers: {
       'Authorization': await getPersistentToken(),
     },
@@ -1961,6 +1961,7 @@ cmdAsset
   .command('policy')
   .description('provision an S3 POST policy for asset upload')
   .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
+  .option('-t, --type <type>', 'asset MIME type', 'application/octet-stream')
   .action(doAPolicy);
 cmdAsset
   .command('push <src>')
