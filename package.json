@@ -22,7 +22,6 @@
     "start": "cd vanity && python3 -m http.server $PORT"
   },
   "dependencies": {
-    "columnify": "^1.5.4",
     "commander": "^7.2.0",
     "form-data": "^4.0.0",
     "node-fetch": "^2.6.5",

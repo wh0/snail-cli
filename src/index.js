@@ -11,7 +11,6 @@ const util = require('util');
 
 const commander = require('commander');
 const fetch = require('node-fetch').default;
-const columnify = require('columnify');
 
 const packageMeta = require('../package.json');
 
@@ -893,16 +892,14 @@ async function doStop(opts) {
 async function doInfo(opts) {
   const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
-  let filteredProjectProps = {
-    "ID": project.id,
-    "Domain": project.domain,
-    "Description": project.description,
-    "Privacy": project.privacy,
-    "Application type": project.appType,
-    "Last edited": project.updatedAt,
-    "Created at": project.createdAt
-  }
-  console.log(columnify(filteredProjectProps, { showHeaders: false }))
+  console.log(`\
+ID                ${project.id}
+Domain            ${project.domain}
+Description       ${project.description}
+Privacy           ${project.privacy}
+Application type  ${project.appType}
+Last edited       ${project.updatedAt}
+Created at        ${project.createdAt}`);
 }
 
 async function doDownload(opts) {
