@@ -1540,8 +1540,8 @@ Domain            ${project.domain}
 Description       ${project.description}
 Privacy           ${project.privacy}
 Application type  ${project.appType}
-Last edited       ${project.updatedAt}
-Created at        ${project.createdAt}`);
+Last edited       ${new Date(project.updatedAt).toLocaleString()}
+Created at        ${new Date(project.createdAt).toLocaleString()}`);
 }
 
 async function doProjectUpdate(opts) {
