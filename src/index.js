@@ -889,19 +889,6 @@ async function doStop(opts) {
   if (!res.ok) throw new Error(`Glitch projects stop response ${res.status} not ok`);
 }
 
-async function doInfo(opts) {
-  const projectDomain = await getProjectDomain(opts);
-  const project = await getProjectByDomain(projectDomain);
-  console.log(`\
-ID                ${project.id}
-Domain            ${project.domain}
-Description       ${project.description}
-Privacy           ${project.privacy}
-Application type  ${project.appType}
-Last edited       ${project.updatedAt}
-Created at        ${project.createdAt}`);
-}
-
 async function doDownload(opts) {
   const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
@@ -1535,6 +1522,19 @@ async function doProjectCreate(domain, opts) {
   console.log(project.domain);
 }
 
+async function doProjectInfo(opts) {
+  const projectDomain = await getProjectDomain(opts);
+  const project = await getProjectByDomain(projectDomain);
+  console.log(`\
+ID                ${project.id}
+Domain            ${project.domain}
+Description       ${project.description}
+Privacy           ${project.privacy}
+Application type  ${project.appType}
+Last edited       ${project.updatedAt}
+Created at        ${project.createdAt}`);
+}
+
 async function doProjectUpdate(opts) {
   const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
@@ -1960,11 +1960,6 @@ commander.program
   .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
   .action(doStop);
 commander.program
-  .command('info')
-  .description('show current project info')
-  .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
-  .action(doInfo);
-commander.program
   .command('download')
   .description('download project as tarball')
   .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
@@ -2060,6 +2055,11 @@ randomly generated project domain.
 Implementation problems:
 Does not send a reCAPTCHA response. This won't work on anonymous accounts.`)
   .action(doProjectCreate);
+cmdProject
+  .command('info')
+  .description('show current project info')
+  .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
+  .action(doProjectInfo);
 cmdProject
   .command('update')
   .description('update a project\'s metadata')
