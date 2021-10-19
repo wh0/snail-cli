@@ -1520,6 +1520,15 @@ async function doProjectCreate(domain, opts) {
   if (!res.ok) throw new Error(`Glitch projects by domain remix response ${res.status} not ok`);
   const project = await res.json();
   console.log(project.domain);
+  if (opts.remote) {
+    try {
+      const {user} = await boot();
+      const url = `https://${user.gitAccessToken}@api.glitch.com/git/${project.domain}`;
+      await util.promisify(childProcess.execFile)('git', ['remote', 'add', REMOTE_NAME, url]);
+    } catch (e) {
+      console.error(e);
+    }
+  }
 }
 
 async function doProjectInfo(opts) {
@@ -2049,6 +2058,7 @@ cmdProject
   .command('create [domain]')
   .description('create a project')
   .option('-r, --remix <domain>', 'specify base project (hello-express if not set)')
+  .option('--remote', 'attempt to set up the glitch git remote')
   .addHelpText('after', `
 Creates a new project and shows its domain. Leave domain unset to get a
 randomly generated project domain.
