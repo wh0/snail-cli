@@ -1540,8 +1540,8 @@ Domain            ${project.domain}
 Description       ${project.description}
 Privacy           ${project.privacy}
 Application type  ${project.appType}
-Last edited       ${project.updatedAt}
-Created at        ${project.createdAt}`);
+Last edited       ${new Date(project.updatedAt).toLocaleString()}
+Created at        ${new Date(project.createdAt).toLocaleString()}`);
 }
 
 async function doProjectUpdate(opts) {
@@ -2068,7 +2068,7 @@ Does not send a reCAPTCHA response. This won't work on anonymous accounts.`)
   .action(doProjectCreate);
 cmdProject
   .command('info')
-  .description('show current project info')
+  .description('show information about a project')
   .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
   .action(doProjectInfo);
 cmdProject
