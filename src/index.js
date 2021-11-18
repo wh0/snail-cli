@@ -934,7 +934,7 @@ async function doAPush(src, opts) {
   });
   if (!policyRes.ok) throw new Error(`Glitch projects policy response ${policyRes.status} not ok`);
   const body = await policyRes.json();
-  const policy = JSON.parse(Buffer.from(body.policy, 'base64').toString('utf-8'));
+  const policy = JSON.parse(Buffer.from(body.policy, 'base64').toString('utf8'));
   let bucket, keyPrefix, acl;
   for (const condition of policy.conditions) {
     if (condition instanceof Array) {
