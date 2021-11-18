@@ -587,7 +587,7 @@ async function doPipe(command, opts) {
   const io = require('socket.io-client');
 
   // see pipe-wrap.js
-  const WRAPPER_SRC = 'var e="base64",t="data",{stdin:s,stdout:o,argv:[,r]}=process,i=null,n=e=>{i&&(clearTimeout(i),i=null),o.write(e+"\\n")},a=require("child_process").spawn(r,{stdio:"pipe",shell:!0}),d="";s.setRawMode(!0),s.setEncoding("ascii"),s.on(t,(t=>{i||(i=setTimeout((()=>{n(")p")}),4e3));var s=(d+t).split("\\n");for(var o of(d=s.pop(),s))o?a.stdin.write(Buffer.from(o,e)):a.stdin.end()})),n(")s"),a.stdout.on(t,(t=>{n(")o"+t.toString(e))})),a.stderr.on(t,(t=>{n(")e"+t.toString(e))})),a.on("exit",((e,t)=>{n(")r"+(t?1:e)),s.pause()}));';
+  const WRAPPER_SRC = 'var t="base64",e="data",{stdin:o,stdout:r,argv:[,s]}=process,i=null,n=t=>{i&&(clearTimeout(i),i=null),r.write(t+"\\n")},a=require("child_process").spawn(Buffer.from(s,t).toString("utf8"),{stdio:"pipe",shell:!0}),d="";o.setRawMode(!0),o.setEncoding("ascii"),o.on(e,(e=>{i||(i=setTimeout((()=>{n(")p")}),4e3));var o=(d+e).split("\\n");for(var r of(d=o.pop(),o))r?a.stdin.write(Buffer.from(r,t)):a.stdin.end()})),n(")s"),a.stdout.on(e,(e=>{n(")o"+e.toString(t))})),a.stderr.on(e,(e=>{n(")e"+e.toString(t))})),a.on("exit",((t,e)=>{n(")r"+(e?1:t)),o.pause()}));';
 
   let started = false;
   let returned = false;
@@ -660,7 +660,7 @@ async function doPipe(command, opts) {
     }
   });
   socket.once('login', () => {
-    socket.emit('input', `unset HISTFILE && exec /opt/nvm/versions/node/v10/bin/node -e ${shellWord(WRAPPER_SRC)} ${shellWord(command.join(' '))}\n`);
+    socket.emit('input', `unset HISTFILE && exec /opt/nvm/versions/node/v10/bin/node -e ${shellWord(WRAPPER_SRC)} ${shellWord(Buffer.from(command.join(' '), 'utf8').toString('base64'))}\n`);
   });
   socket.once('logout', () => {
     done = true;

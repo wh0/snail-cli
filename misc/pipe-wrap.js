@@ -8,7 +8,7 @@ var data = 'data';
 var {
   stdin: processStdin,
   stdout: processStdout,
-  argv: [, command],
+  argv: [, commandB64],
 } = process;
 
 var pingTimer = null;
@@ -21,7 +21,7 @@ var writeln = (v) => {
   processStdout.write(v + '\n');
 };
 
-var child = require('child_process').spawn(command, {
+var child = require('child_process').spawn(Buffer.from(commandB64, base64).toString('utf8'), {
   stdio: 'pipe',
   shell: true,
 });
