@@ -418,11 +418,11 @@ async function doAuthSendEmail(email, opts) {
 
   if (opts.interactive) {
     const codePrompted = await prompt('Code: ');
-    const res = await fetch(`https://api.glitch.com/v1/auth/email/${codePrompted}`, {
+    const codeRes = await fetch(`https://api.glitch.com/v1/auth/email/${codePrompted}`, {
       method: 'POST',
     });
-    if (!res.ok) throw new Error(`Glitch auth email response ${res.status} not ok`);
-    const body = await res.json();
+    if (!codeRes.ok) throw new Error(`Glitch auth email response ${codeRes.status} not ok`);
+    const body = await codeRes.json();
 
     await savePersistentToken(body.user.persistentToken);
   }
@@ -530,7 +530,7 @@ async function doTerm(command, opts) {
     method: 'POST',
     headers: {
       'Authorization': await getPersistentToken(),
-    }
+    },
   });
   if (!res.ok) throw new Error(`Glitch projects single purpose tokens terminal response ${res.status} not ok`);
   const body = await res.json();
@@ -599,7 +599,7 @@ async function doPipe(command, opts) {
     method: 'POST',
     headers: {
       'Authorization': await getPersistentToken(),
-    }
+    },
   });
   if (!res.ok) throw new Error(`Glitch projects single purpose tokens terminal response ${res.status} not ok`);
   const body = await res.json();
@@ -1777,7 +1777,7 @@ async function doWebTerm(opts) {
       method: 'POST',
       headers: {
         'Authorization': await getPersistentToken(),
-      }
+      },
     });
     if (!res.ok) throw new Error(`Glitch projects single purpose tokens terminal response ${res.status} not ok`);
     const body = await res.json();
