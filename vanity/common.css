@@ -76,6 +76,16 @@ pre .control, code .control {
   font-size: 0.75rem;
 }
 
+@media print {
+  .footer span {
+    display: none;
+  }
+
+  .footer:after {
+    content: "Go ahead, write whatever you want down here. It's your own paper.";
+  }
+}
+
 body {
   margin: 0rem;
   background-color: #202020;
