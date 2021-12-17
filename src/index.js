@@ -1807,7 +1807,8 @@ async function doWebDebugger(opts) {
 
 commander.program.name('snail');
 commander.program.version(packageMeta.version);
-commander.program.addHelpText('before', 'https://snail-cli.glitch.me\n');
+commander.program.description(`CLI for Glitch
+https://snail-cli.glitch.me`);
 const cmdAuth = commander.program
   .command('auth')
   .description('sign in');
