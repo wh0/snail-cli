@@ -2169,6 +2169,7 @@ Implementation problems:
 Does not set GLITCH_DEBUGGER. Do that yourself (snail setenv GLITCH_DEBUGGER
 true).`)
   .action(doWebDebugger);
+
 commander.program.parseAsync(process.argv).catch((e) => {
   console.error(e);
   process.exit(1);
