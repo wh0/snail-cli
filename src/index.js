@@ -561,7 +561,7 @@ async function doTerm(command, opts) {
     console.error(e);
   });
   socket.once('login', () => {
-    if (opts.raw) {
+    if (process.stdin.isTTY && opts.raw) {
       process.stdin.setRawMode(true);
     }
     handleResize();
