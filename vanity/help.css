@@ -1,0 +1,24 @@
+.header h1 {
+  display: inline;
+  font-weight: normal;
+  font-size: 1em;
+}
+.help-main {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  max-width: none;
+}
+.help-main pre {
+  color: inherit;
+}
+.help-misc {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+.item {
+  display: inline-flex;
+}
+.description {
+  white-space: pre-wrap;
+  flex: 1;
+}

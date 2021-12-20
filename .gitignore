@@ -6,3 +6,4 @@ package-lock.json
 
 /.env
 /dist
+/help-staging
