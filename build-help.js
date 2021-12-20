@@ -90,18 +90,23 @@ commander.program.parse = () => { };
 require('./src/index.js');
 
 function visitCommand(cmd) {
+  const briefName = briefNameFromCommand(cmd);
   const filename = filenameFromCommand(cmd);
   const dstPath = path.join('help-staging', filename);
-  console.log(dstPath); // %%%
+  console.error(`${briefName} -> ${dstPath}`);
+
   let content = '';
   cmd.outputHelp({write: (chunk) => {
     content += chunk;
   }});
+  const loweredContent = lowerHighSubs(content);
+  resetHighSubs();
+
   const page = `<!doctype html>
 <html lang="en">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${briefNameFromCommand(cmd)} &mdash; Snail</title>
+<title>${briefName} &mdash; Snail</title>
 <script>
   if (window.location.protocol === 'http:' && !window.isSecureContext) {
     const httpsUrl = new URL(window.location.href);
@@ -128,7 +133,7 @@ function visitCommand(cmd) {
 
 <div class="block help-main">
 <pre>
-${lowerHighSubs(content)}</pre>
+${loweredContent}</pre>
 </div>
 
 <div class="block help-misc">
@@ -139,10 +144,10 @@ ${lowerHighSubs(content)}</pre>
 
 <div class="footer"><span>Please do not write below this line.</span></div>
 `;
-  resetHighSubs();
   fs.writeFile(dstPath, page, (err) => {
     if (err) console.error(err);
   });
+
   for (const sub of cmd.commands) {
     visitCommand(sub);
   }
