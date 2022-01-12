@@ -1,0 +1,41 @@
+the new UI doesn't have the 'request to join project' / 'invite to edit' system
+so now we can't add anonymous users to projects
+
+the old way:
+- they click 'request to join'
+  - UI is gone, but Snail can still send request over OT socket, possible
+- you click 'invite to edit'
+  - UI is gone, impossible
+
+the current way:
+- click share
+- find user by login or email address
+  - anonymous user has no login or email address, impossible
+- Glitch sends them an email
+  - anonymous user has no email address, impossible
+- they click the link in the email to join
+
+maybe through teams?
+- you create a team
+- you invite the anonymous user
+  - basically the same interface, you can't find an anonymous user, impossible
+- you add the project to the team
+- they click 'join this team project'
+  - UI is gone, but Snail can still access the API, possible
+
+maybe the other way through teams?
+- they create a team
+  - anonymous users not allowed to create team, impossible
+- they invite you to team
+  - goes through your email, really lame, but possible
+- you click a thing to accept
+- you add the project to the team
+- they click 'join this team project'
+  - UI is gone, but Snail can still access the API, possible
+
+the self-xss way:
+- you run `await application.glitchApi().v0.createProjectPermission(application.currentProject().id(), theirUserId, 20);`
+  - you have to open the developer console, really lame, but possible
+  - mobile has no developer console, impossible
+
+https://www.youtube.com/watch?v=KxGRhd_iWuE

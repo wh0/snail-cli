@@ -1809,6 +1809,11 @@ async function doWebDebugger(opts) {
   }
 }
 
+async function doConsoleAddMe(opts) {
+  const {user} = await boot();
+  console.log(`await application.glitchApi().v0.createProjectPermission(application.currentProject().id(), ${JSON.stringify(user.id)}, ${JSON.stringify(ACCESS_LEVEL_MEMBER)});`);
+}
+
 commander.program.name('snail');
 commander.program.version(packageMeta.version);
 commander.program.description(`CLI for Glitch
@@ -2173,6 +2178,13 @@ Implementation problems:
 Does not set GLITCH_DEBUGGER. Do that yourself (snail setenv GLITCH_DEBUGGER
 true).`)
   .action(doWebDebugger);
+const cmdConsole = commander.program
+  .command('console')
+  .description('generate snippets for running in the developer console');
+cmdConsole
+  .command('add-me')
+  .description('generate snippet to add this user to a project')
+  .action(doConsoleAddMe);
 
 commander.program.parseAsync(process.argv).catch((e) => {
   console.error(e);
