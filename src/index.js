@@ -385,6 +385,10 @@ function promptPassword() {
   });
 }
 
+// Glitch constants
+
+const ACCESS_LEVEL_MEMBER = 20;
+
 // commands
 
 async function doAuthAnon() {
@@ -1667,7 +1671,7 @@ async function doMemberAdd(login, opts) {
     body: JSON.stringify({
       userId,
       projectId: project.id,
-      accessLevel: 20,
+      accessLevel: ACCESS_LEVEL_MEMBER,
     }),
   });
   if (!res.ok) throw new Error(`Glitch v0 project permissions response ${res.status} not ok`);
