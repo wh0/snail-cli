@@ -1,0 +1,60 @@
+lint
+- `eslint *.js src`
+
+bump dependencies
+- `pnpm outdated`
+- `pnpm update`
+- update package.json
+
+commit
+- commit message: `bump dependencies`
+
+bump version
+- `pnpm version minor` (or as needed)
+
+commit
+- `[p]npm version` commits automatically, so `--amend`
+- commit message: `version x.x.x`
+
+check package
+- `pnpm pack --dry-run`
+
+build
+- `./build.sh`
+
+smoketest
+- `distsnail --version`
+
+check bundle
+- save https://snail-cli.glitch.me/dist/stats.json
+- open https://chrisbateman.github.io/webpack-visualizer/
+- drop stats.json
+
+build help
+- `node build-help.js`
+
+check help staging
+- open https://snail-cli.glitch.me/help-staging/
+- check version at bottom
+
+write release notes
+
+tag commit
+- `[p]npm version` tags automatically, so `-f`
+- tag name: `vx.x.x`
+
+push
+- master
+- scratch
+- vx.x.x
+
+publish on npm
+- `pnpm publish`
+
+create release on GitHub
+- save https://snail-cli.glitch.me/dist/snail.js
+- body: release notes
+- artifact: snail.js
+
+update help
+- `rm -r vanity/help && cp -rv help-staging vanity/help`
