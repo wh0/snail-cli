@@ -1817,7 +1817,7 @@ async function doConsoleAddMe(opts) {
 commander.program.name('snail');
 commander.program.version(packageMeta.version);
 commander.program.description(`CLI for Glitch
-https://snail-cli.glitch.me`);
+https://snail-cli.glitch.me/`);
 const cmdAuth = commander.program
   .command('auth')
   .description('sign in');
