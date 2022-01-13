@@ -948,9 +948,10 @@ async function doAPush(src, opts) {
       if ('acl' in condition) acl = condition.acl;
     }
   }
-  const key = keyPrefix + (opts.name || path.basename(src));
+  const key = opts.name || path.basename(src);
+  const awsKey = keyPrefix + key;
   const form = new FormData();
-  form.append('key', key);
+  form.append('key', awsKey);
   form.append('Content-Type', opts.type);
   form.append('Cache-Control', `max-age=${opts.maxAge}`);
   form.append('AWSAccessKeyId', body.accessKeyId);
@@ -962,7 +963,7 @@ async function doAPush(src, opts) {
   // https://github.com/node-fetch/node-fetch/pull/1020
   const uploadRes = await util.promisify(form.submit).call(form, `https://s3.amazonaws.com/${bucket}`);
   if (uploadRes.statusCode < 200 || uploadRes.statusCode >= 300) throw new Error(`S3 upload response ${uploadRes.statusCode} not ok`);
-  console.log(`https://cdn.glitch.global/${encodeURIComponent(key)}?v=${Date.now()}`);
+  console.log(`https://cdn.glitch.global/${keyPrefix}${encodeURIComponent(key)}?v=${Date.now()}`);
 }
 
 async function doOtPush(src, dst, opts) {
