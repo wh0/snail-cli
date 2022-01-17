@@ -30,13 +30,14 @@ function lowerHighSubs(s) {
   function replace(v, x, y) {
     return v.split(x).join(y);
   }
-  s = replace(s, '&', '&amp;');
-  s = replace(s, '<', '&lt;');
-  s = replace(s, '>', '&gt;');
+  let lowered = s;
+  lowered = replace(lowered, '&', '&amp;');
+  lowered = replace(lowered, '<', '&lt;');
+  lowered = replace(lowered, '>', '&gt;');
   for (const markup of highSubsOrder) {
-    s = replace(s, highSubs.get(markup), markup);
+    lowered = replace(lowered, highSubs.get(markup), markup);
   }
-  return s;
+  return lowered;
 }
 
 function briefNameFromCommand(cmd) {
@@ -50,7 +51,11 @@ function briefNameFromCommand(cmd) {
 function filenameFromCommand(cmd) {
   if (cmd === commander.program) return 'index.html';
   let filename = `${cmd.name()}.html`;
-  for (let parentCmd = cmd.parent; parentCmd && parentCmd !== commander.program; parentCmd = parentCmd.parent) {
+  for (
+    let parentCmd = cmd.parent;
+    parentCmd && parentCmd !== commander.program;
+    parentCmd = parentCmd.parent
+  ) {
     filename = `${parentCmd.name()}-${filename}`;
   }
   return filename;
@@ -87,7 +92,7 @@ commander.program.configureHelp({
 
 // Haaaaaaaaaaaaaaaaaaaaaaaaaax.
 commander.program.parse = () => { };
-require('./src/index.js');
+require('./src/index');
 
 function visitCommand(cmd) {
   const briefName = briefNameFromCommand(cmd);
@@ -96,9 +101,11 @@ function visitCommand(cmd) {
   console.error(`${briefName} -> ${dstPath}`);
 
   let content = '';
-  cmd.outputHelp({write: (chunk) => {
-    content += chunk;
-  }});
+  cmd.outputHelp({
+    write: (chunk) => {
+      content += chunk;
+    },
+  });
   const loweredContent = lowerHighSubs(content);
   resetHighSubs();
 
