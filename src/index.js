@@ -966,6 +966,31 @@ async function doAPush(src, opts) {
   console.log(`https://cdn.glitch.global/${keyPrefix}${encodeURIComponent(key)}?v=${Date.now()}`);
 }
 
+async function doACp(src, dst, opts) {
+  const projectDomain = await getProjectDomain(opts);
+  const project = await getProjectByDomain(projectDomain);
+  // don't want protocol, host, ?v= thingy, etc.
+  let sourceKey = new URL(src, 'https://cdn.glitch.global/').pathname;
+  // key doesn't have leading slash
+  sourceKey = sourceKey.replace(/^\//, '');
+  // for convenience, allow shorthand for assets in current project
+  if (!/\/|^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}%2F/i.test(sourceKey)) {
+    sourceKey = `${project.id}/${sourceKey}`;
+  }
+  const res = await fetch(`https://api.glitch.com/v1/projects/${project.id}/asset/${encodeURIComponent(dst)}`, {
+    method: 'PUT',
+    headers: {
+      'Authorization': await getPersistentToken(),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      sourceKey,
+    }),
+  });
+  if (res.statusCode < 200 || res.statusCode >= 300) throw new Error(`Glitch projects asset response ${res.statusCode} not ok`);
+  console.log(`https://cdn.glitch.global/${project.id}/${encodeURIComponent(dst)}?v=${Date.now()}`);
+}
+
 async function doOtPush(src, dst, opts) {
   const WebSocket = require('ws');
 
@@ -2008,6 +2033,22 @@ cmdAsset
 Implementation problems:
 Does not maintain .glitch-assets.`)
   .action(doAPush);
+cmdAsset
+  .command('cp <src> <dst>')
+  .description('copy an asset')
+  .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
+  .addHelpText('after', `
+Copy an asset from URL or name src to a new name dst.
+
+Examples:
+    # Copy from full URL
+    snail a cp https://cdn.glitch.global/8e6cdc77-20b9-4209-850f-d2607eeae33a/my-asset.png?v=1622356099641 avatar.png
+    # Copy asset from current project
+    snail a cp my-asset.png avatar.png
+
+Implementation problems:
+Does not maintain .glitch-assets.`)
+  .action(doACp);
 const cmdOt = commander.program
   .command('ot')
   .description('interact over OT');
