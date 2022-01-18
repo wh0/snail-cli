@@ -31,7 +31,7 @@ check bundle
 - drop stats.json
 
 build help
-- `node build-help.js`
+- `rm -rf help-staging && mkdir -p help-staging && node build-help.js`
 
 check help staging
 - open https://snail-cli.glitch.me/help-staging/
