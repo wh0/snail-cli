@@ -32,9 +32,9 @@
     "eslint": "^7.32.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.25.4",
-    "terser": "^5.10.0",
-    "webpack": "^5.66.0",
-    "webpack-cli": "^4.9.1"
+    "terser": "^5.11.0",
+    "webpack": "^5.69.1",
+    "webpack-cli": "^4.9.2"
   },
   "engines": {
     "node": ">=10"
