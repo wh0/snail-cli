@@ -1341,6 +1341,9 @@ async function doOtRequestJoin(opts) {
     },
   };
   if (opts.randomName) {
+    if (!nagUser.avatarUrl) {
+      nagUser.avatarUrl = 'https://snail-cli.glitch.me/join.svg';
+    }
     nagUser.name = `snail-${crypto.randomBytes(2).toString('hex')}`;
     nagUser.color = '#c00040';
   }
