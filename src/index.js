@@ -929,6 +929,9 @@ async function doAPolicy(opts) {
 async function doAPush(src, opts) {
   const FormData = require('form-data');
 
+  const srcSize = (await fs.promises.stat(src)).size;
+  const srcStream = fs.createReadStream(src);
+
   const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
   const policyRes = await fetch(`https://api.glitch.com/v1/projects/${project.id}/policy?contentType=${encodeURIComponent(opts.type)}`, {
@@ -958,12 +961,14 @@ async function doAPush(src, opts) {
   form.append('acl', acl);
   form.append('policy', body.policy);
   form.append('signature', body.signature);
-  form.append('file', fs.createReadStream(src));
+  form.append('file', srcStream, {knownLength: srcSize});
   // node-fetch is variously annoying about how it sends FormData
   // https://github.com/node-fetch/node-fetch/pull/1020
   const uploadRes = await util.promisify(form.submit).call(form, `https://s3.amazonaws.com/${bucket}`);
   if (uploadRes.statusCode < 200 || uploadRes.statusCode >= 300) throw new Error(`S3 upload response ${uploadRes.statusCode} not ok`);
-  console.log(`https://cdn.glitch.global/${keyPrefix}${encodeURIComponent(key)}?v=${Date.now()}`);
+  // empirically, 20MiB works, (20Mi + 1)B gives 503 on cdn.glitch.global
+  const cdnHost = srcSize > (20 * 1024 * 1024) ? 'cdn.glitch.me' : 'cdn.glitch.global';
+  console.log(`https://${cdnHost}/${keyPrefix}${encodeURIComponent(key)}?v=${Date.now()}`);
 }
 
 async function doACp(src, dst, opts) {
