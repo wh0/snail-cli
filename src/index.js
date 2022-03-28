@@ -1803,6 +1803,10 @@ async function doWebApp(opts) {
   console.log(`https://${await getProjectDomain(opts)}.glitch.me/`);
 }
 
+async function doWebDetails(opts) {
+  console.log(`https://glitch.com/~${await getProjectDomain(opts)}`);
+}
+
 async function doWebEdit(opts) {
   console.log(`https://glitch.com/edit/#!/${await getProjectDomain(opts)}`);
 }
@@ -2207,6 +2211,11 @@ cmdWeb
   .description('display application URL')
   .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
   .action(doWebApp);
+cmdWeb
+  .command('details')
+  .description('display project details URL')
+  .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
+  .action(doWebDetails);
 cmdWeb
   .command('edit')
   .description('display editor URL')
