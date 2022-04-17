@@ -867,7 +867,7 @@ async function doLogs(opts) {
     if (opts.all) {
       console.log(msg);
     } else {
-      if (msg.process === 'application') {
+      if (msg.process !== 'signal') {
         console.log(msg.text);
       }
     }
