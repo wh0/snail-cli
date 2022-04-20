@@ -54,19 +54,19 @@
   content: "$";
 }
 
-/* colors from GNOME Terminal */
+/* colors from GNOME Console */
 .term-red { color: #c01c28; }
-.term-green { color: #26a269; }
-.term-yellow { color: #a2734c; }
-.term-blue { color: #12488b; }
-.term-magenta { color: #a347ba; }
-.term-cyan { color: #2aa1b3; }
-b .term-red { color: #f66151; }
-b .term-green { color: #33d17a; }
-b .term-yellow { color: #e9ad0c; }
-b .term-blue { color: #2a7bde; }
+.term-green { color: #2ec27e; }
+.term-yellow { color: #f5c211; }
+.term-blue { color: #1e78e4; }
+.term-magenta { color: #9841bb; }
+.term-cyan { color: #0ab9dc; }
+b .term-red { color: #ed333b; }
+b .term-green { color: #57e389; }
+b .term-yellow { color: #f8e45c; }
+b .term-blue { color: #51a1ff; }
 b .term-magenta { color: #c061cb; }
-b .term-cyan { color: #33c7de; }
+b .term-cyan { color: #4fd2fd; }
 
 pre .command, code .command {
   color: #80ffc0;
