@@ -58,3 +58,7 @@ create release on GitHub
 
 update help
 - `rm -r vanity/help && cp -rv help-staging vanity/help`
+
+close issues on GitHub
+- uh https://github.com/wh0/snail-cli/issues
+- message: "fixed in vx.x.x"
