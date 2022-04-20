@@ -338,7 +338,7 @@ function noCompletions(line) {
   return [];
 }
 
-function prompt(query) {
+function promptTrimmed(query) {
   const readline = require('readline');
   return new Promise((resolve, reject) => {
     const rl = readline.createInterface({
@@ -351,7 +351,7 @@ function prompt(query) {
       reject(new Error('readline close'));
     });
     rl.question(query, (answer) => {
-      resolve(answer);
+      resolve(answer.trim());
       rl.close();
     });
   });
@@ -408,7 +408,7 @@ async function doAuthSendEmail(email, opts) {
     await failIfPersistentTokenSaved();
   }
 
-  const emailPrompted = email || await prompt('Email: ');
+  const emailPrompted = email || await promptTrimmed('Email: ');
   const res = await fetch('https://api.glitch.com/v1/auth/email/', {
     method: 'POST',
     headers: {
@@ -421,7 +421,7 @@ async function doAuthSendEmail(email, opts) {
   if (!res.ok) throw new Error(`Glitch auth email response ${res.status} not ok`);
 
   if (opts.interactive) {
-    const codePrompted = await prompt('Code: ');
+    const codePrompted = await promptTrimmed('Code: ');
     const codeRes = await fetch(`https://api.glitch.com/v1/auth/email/${codePrompted}`, {
       method: 'POST',
     });
@@ -435,7 +435,7 @@ async function doAuthSendEmail(email, opts) {
 async function doAuthCode(code) {
   await failIfPersistentTokenSaved();
 
-  const codePrompted = code || await prompt('Code: ');
+  const codePrompted = code || await promptTrimmed('Code: ');
   const res = await fetch(`https://api.glitch.com/v1/auth/email/${codePrompted}`, {
     method: 'POST',
   });
@@ -448,7 +448,7 @@ async function doAuthCode(code) {
 async function doAuthPassword(email, password) {
   await failIfPersistentTokenSaved();
 
-  const emailPrompted = email || await prompt('Email: ');
+  const emailPrompted = email || await promptTrimmed('Email: ');
   const passwordPrompted = password || await promptPassword();
   const res = await fetch('https://api.glitch.com/v1/auth/password', {
     method: 'POST',
