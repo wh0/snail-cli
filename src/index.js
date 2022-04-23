@@ -2036,7 +2036,7 @@ cmdAsset
   .action(doAPolicy);
 cmdAsset
   .command('push <src>')
-  .description('upload an assset')
+  .description('upload an asset')
   .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
   .option('-n, --name <name>', 'destination filename (taken from src if not set)')
   .option('-t, --type <type>', 'asset MIME type', 'application/octet-stream')
