@@ -1542,7 +1542,7 @@ async function doHours() {
 }
 
 async function doProjectCreate(domain, opts) {
-  const fromDomain = opts.remix || 'hello-express';
+  const fromDomain = opts.remix || 'glitch-hello-node';
   const reqBody = {};
   if (domain) {
     reqBody.domain = domain;
@@ -2121,7 +2121,7 @@ const cmdProject = commander.program
 cmdProject
   .command('create [domain]')
   .description('create a project')
-  .option('-r, --remix <domain>', 'specify base project (hello-express if not set)')
+  .option('-r, --remix <domain>', 'specify base project (glitch-hello-node if not set)')
   .option('--remote', 'attempt to set up the glitch git remote')
   .addHelpText('after', `
 Creates a new project and shows its domain. Leave domain unset to get a
