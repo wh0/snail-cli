@@ -1,0 +1,30 @@
+digraph {
+  rankdir=LR
+  epsilon [label="&epsilon;"]
+
+  # glitch
+  edge [color="#694dff", fontcolor="#694dff"]
+  glitch -> snail [label="reserved on Glitch"]
+  glitch -> cli [label="reserved on Glitch"]
+  snail -> cli [label=<<table border="0"><tr><td border="0" bgcolor="yellow">us on Glitch</td></tr></table>>]
+  glitch -> epsilon [label="reserved on Glitch"]
+  snail -> epsilon [label="unknown (private) on Glitch"]
+  cli -> epsilon [label="unknown (private) on Glitch"]
+
+  # npm
+  edge [color="#cb0000", fontcolor="#cb0000"]
+  glitch -> snail [label=<<table border="0"><tr><td border="0" bgcolor="yellow">us on npm</td></tr></table>>]
+  glitch -> cli [label="unrelated on npm"]
+  snail -> cli [label="unrelated on npm"]
+  glitch -> epsilon [label="unrelated on npm"]
+  snail -> epsilon [label="unrelated on npm"]
+  cli -> epsilon [label="unrelated on npm"]
+
+  # github
+  edge [color="#171515", fontcolor="#171515"]
+  snail -> cli [label=<<table border="0"><tr><td border="0" bgcolor="yellow">us on GitHub (wh0/)</td></tr></table>>]
+
+  # command line
+  edge [color="#00a000", fontcolor="#00a000"]
+  snail -> epsilon [label=<<table border="0"><tr><td border="0" bgcolor="yellow">us on command line</td></tr></table>>]
+}
