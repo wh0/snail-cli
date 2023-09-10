@@ -37,7 +37,7 @@ async function failIfPersistentTokenSaved() {
 async function savePersistentToken(persistentToken) {
   const persistentTokenPath = getPersistentTokenPath();
   await fs.promises.mkdir(path.dirname(persistentTokenPath), {recursive: true});
-  await fs.promises.writeFile(persistentTokenPath, persistentToken + '\n', {flag: 'wx'});
+  await fs.promises.writeFile(persistentTokenPath, persistentToken + '\n', {flag: 'wx', mode: 0o600});
 }
 
 function getPersistentTokenFromEnv() {
