@@ -62,3 +62,8 @@ update help
 close issues on GitHub
 - uh https://github.com/wh0/snail-cli/issues
 - message: "fixed in vx.x.x"
+
+update practice template
+- open https://glitch.com/edit/console.html?fa7cbf09-22f8-40fa-9ff5-054ede74b759
+- `npm update`
+- `git commit -am "bump dependencies"`
