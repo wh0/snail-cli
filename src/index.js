@@ -1869,6 +1869,10 @@ async function doConsoleAddMe(opts) {
   console.log(`await application.glitchApi().v0.createProjectPermission(application.currentProject().id(), ${JSON.stringify(user.id)}, ${JSON.stringify(ACCESS_LEVEL_MEMBER)});`);
 }
 
+async function doConsolePersistentToken() {
+  console.log('copy(JSON.parse(localStorage.getItem(\'cachedUser\')).persistentToken);');
+}
+
 commander.program.name('snail');
 commander.program.version(packageMeta.version);
 commander.program.description(`CLI for Glitch
@@ -2272,6 +2276,10 @@ cmdConsole
   .command('add-me')
   .description('generate snippet to add this user to a project')
   .action(doConsoleAddMe);
+cmdConsole
+  .command('persistent-token')
+  .description('generate snippet to copy your persistent token')
+  .action(doConsolePersistentToken);
 
 commander.program.parseAsync(process.argv).catch((e) => {
   console.error(e);
