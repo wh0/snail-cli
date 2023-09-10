@@ -484,6 +484,15 @@ async function doWhoami(opts) {
   }
 }
 
+async function doLogout() {
+  const persistentTokenPath = getPersistentTokenPath();
+  try {
+    await fs.promises.unlink(persistentTokenPath);
+  } catch (e) {
+    if (e.code !== 'ENOENT') throw e;
+  }
+}
+
 async function doRemote(opts) {
   const projectDomain = getProjectDomainFromOpts(opts);
   if (!projectDomain) throw new Error('Unable to determine which project. Specify (-p)');
@@ -1900,6 +1909,10 @@ commander.program
   .description('show user login')
   .option('-n, --numeric', 'show user ID instead of login')
   .action(doWhoami);
+commander.program
+  .command('logout')
+  .description('delete your saved persistent token')
+  .action(doLogout);
 commander.program
   .command('remote')
   .description('set up the glitch git remote')
