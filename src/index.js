@@ -357,7 +357,7 @@ function promptTrimmed(query) {
   });
 }
 
-function promptPassword() {
+function promptPassword(query) {
   const readline = require('readline');
   return new Promise((resolve, reject) => {
     const maskedStderr = Object.create(process.stdout);
@@ -365,7 +365,7 @@ function promptPassword() {
       const masked = chunk
         .replace(
           // eslint-disable-next-line no-control-regex
-          /(^Password: )|(\x1b\x5b[\x20-\x3f]*[\x40-\x7f])|(.)/g,
+          /(^[^:]*: )|(\x1b\x5b[\x20-\x3f]*[\x40-\x7f])|(.)/g,
           (_, p, cs, ch) => p || cs || '*',
         );
       process.stderr.write(masked);
@@ -378,7 +378,7 @@ function promptPassword() {
     rl.on('close', () => {
       reject(new Error('readline close'));
     });
-    rl.question('Password: ', (answer) => {
+    rl.question(`${query}: `, (answer) => {
       resolve(answer);
       rl.close();
     });
@@ -449,7 +449,7 @@ async function doAuthPassword(email, password) {
   await failIfPersistentTokenSaved();
 
   const emailPrompted = email || await promptTrimmed('Email');
-  const passwordPrompted = password || await promptPassword();
+  const passwordPrompted = password || await promptPassword('Password');
   const res = await fetch('https://api.glitch.com/v1/auth/password', {
     method: 'POST',
     headers: {
