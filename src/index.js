@@ -391,6 +391,14 @@ const ACCESS_LEVEL_MEMBER = 20;
 
 // commands
 
+async function doAuthPersistentToken(persistentToken) {
+  await failIfPersistentTokenSaved();
+
+  const persistentTokenPrompted = persistentToken || await promptPassword('Persistent token');
+
+  await savePersistentToken(persistentTokenPrompted);
+}
+
 async function doAuthAnon() {
   await failIfPersistentTokenSaved();
 
@@ -1859,6 +1867,13 @@ https://snail-cli.glitch.me/`);
 const cmdAuth = commander.program
   .command('auth')
   .description('sign in');
+cmdAuth
+  .command('persistent-token [persistent_token]')
+  .description('use an existing persistent token')
+  .addHelpText('after', `
+Use the snippet from snail console persistent-token to get your persistent
+token from your browser.`)
+  .action(doAuthPersistentToken);
 cmdAuth
   .command('anon')
   .description('create a new anonymous user')
