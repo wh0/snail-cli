@@ -936,6 +936,7 @@ async function doAPolicy(opts) {
   const res = await fetch(`https://api.glitch.com/v1/projects/${project.id}/policy?contentType=${encodeURIComponent(opts.type)}`, {
     headers: {
       'Authorization': await getPersistentToken(),
+      'Origin': 'https://glitch.com',
     },
   });
   if (!res.ok) throw new Error(`Glitch projects policy response ${res.status} not ok`);
@@ -954,6 +955,7 @@ async function doAPush(src, opts) {
   const policyRes = await fetch(`https://api.glitch.com/v1/projects/${project.id}/policy?contentType=${encodeURIComponent(opts.type)}`, {
     headers: {
       'Authorization': await getPersistentToken(),
+      'Origin': 'https://glitch.com',
     },
   });
   if (!policyRes.ok) throw new Error(`Glitch projects policy response ${policyRes.status} not ok`);
