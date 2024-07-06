@@ -1030,7 +1030,7 @@ async function doACp(src, dst, opts) {
       sourceKey,
     }),
   });
-  if (res.statusCode < 200 || res.statusCode >= 300) throw new Error(`Glitch projects asset response ${res.statusCode} not ok`);
+  if (!res.ok) throw new Error(`Glitch projects asset response ${res.status} not ok`);
   console.log(`https://cdn.glitch.global/${project.id}/${encodeURIComponent(dst)}?v=${Date.now()}`);
 }
 
