@@ -2093,7 +2093,7 @@ cmdAsset
   .option('-p, --project <domain>', 'specify which project (taken from remote if not set)')
   .option('-n, --name <name>', 'destination filename (taken from src if not set)')
   .option('-t, --type <type>', 'asset MIME type', 'application/octet-stream')
-  .option('-a, --max-age <age_seconds>', 'max-age for Cache-Control', 31536000)
+  .option('-a, --max-age <age_seconds>', 'max-age for Cache-Control', '31536000')
   .addHelpText('after', `
 Implementation problems:
 Does not maintain .glitch-assets.`)
