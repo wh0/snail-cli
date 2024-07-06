@@ -66,6 +66,25 @@ async function getPersistentToken() {
   return persistentToken;
 }
 
+function readResponse(res) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    res.on('data', (chunk) => {
+      chunks.push(chunk);
+    });
+    res.on('end', () => {
+      resolve(Buffer.concat(chunks));
+    });
+    res.on('close', () => {
+      reject(new Error('Response close before end'));
+    });
+  });
+}
+
+async function readResponseString(res) {
+  return (await readResponse(res)).toString();
+}
+
 async function boot() {
   const res = await fetch('https://api.glitch.com/boot?latestProjectOnly=true', {
     headers: {
