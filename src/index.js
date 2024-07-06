@@ -76,7 +76,7 @@ function readResponse(res) {
       resolve(Buffer.concat(chunks));
     });
     res.on('close', () => {
-      reject(new Error('Response close before end'));
+      reject(new Error('response close before end'));
     });
   });
 }
@@ -91,7 +91,7 @@ async function boot() {
       'Authorization': await getPersistentToken(),
     },
   });
-  if (!res.ok) throw new Error(`Glitch v0 boot response ${res.status} not ok`);
+  if (!res.ok) throw new Error(`Glitch v0 boot response ${res.status} not ok, body ${await res.text()}`);
   return await res.json();
 }
 
@@ -136,7 +136,7 @@ async function getProjectByDomain(domain) {
       'Authorization': await getPersistentToken(),
     },
   });
-  if (!res.ok) throw new Error(`Glitch projects by domain response ${res.status} not ok`);
+  if (!res.ok) throw new Error(`Glitch projects by domain response ${res.status} not ok, body ${await res.text()}`);
   const body = await res.json();
   if (!(domain in body)) throw new Error(`Glitch project domain ${domain} not found`);
   return body[domain];
@@ -146,7 +146,7 @@ async function getProjectByDomain(domain) {
 
 async function getUserByLogin(login) {
   const res = await fetch(`https://api.glitch.com/v1/users/by/login?login=${login}`);
-  if (!res.ok) throw new Error(`Glitch users by login response ${res.status} not ok`);
+  if (!res.ok) throw new Error(`Glitch users by login response ${res.status} not ok, body ${await res.text()}`);
   const body = await res.json();
   if (!(login in body)) throw new Error(`Glitch user login ${login} not found`);
   return body[login];
@@ -424,7 +424,7 @@ async function doAuthAnon() {
   const res = await fetch('https://api.glitch.com/v1/users/anon', {
     method: 'POST',
   });
-  if (!res.ok) throw new Error(`Glitch users anon response ${res.status} not ok`);
+  if (!res.ok) throw new Error(`Glitch users anon response ${res.status} not ok, body ${await res.text()}`);
   const user = await res.json();
 
   await savePersistentToken(user.persistentToken);
@@ -445,14 +445,14 @@ async function doAuthSendEmail(email, opts) {
       emailAddress: emailPrompted,
     }),
   });
-  if (!res.ok) throw new Error(`Glitch auth email response ${res.status} not ok`);
+  if (!res.ok) throw new Error(`Glitch auth email response ${res.status} not ok, body ${await res.text()}`);
 
   if (opts.interactive) {
     const codePrompted = await promptTrimmed('Code');
     const codeRes = await fetch(`https://api.glitch.com/v1/auth/email/${codePrompted}`, {
       method: 'POST',
     });
-    if (!codeRes.ok) throw new Error(`Glitch auth email response ${codeRes.status} not ok`);
+    if (!codeRes.ok) throw new Error(`Glitch auth email response ${codeRes.status} not ok, body ${await codeRes.text()}`);
     const body = await codeRes.json();
 
     await savePersistentToken(body.user.persistentToken);
@@ -466,7 +466,7 @@ async function doAuthCode(code) {
   const res = await fetch(`https://api.glitch.com/v1/auth/email/${codePrompted}`, {
     method: 'POST',
   });
-  if (!res.ok) throw new Error(`Glitch auth email response ${res.status} not ok`);
+  if (!res.ok) throw new Error(`Glitch auth email response ${res.status} not ok, body ${await res.text()}`);
   const body = await res.json();
 
   await savePersistentToken(body.user.persistentToken);
@@ -487,7 +487,7 @@ async function doAuthPassword(email, password) {
       password: passwordPrompted,
     }),
   });
-  if (!res.ok) throw new Error(`Glitch auth password response ${res.status} not ok`);
+  if (!res.ok) throw new Error(`Glitch auth password response ${res.status} not ok, body ${await res.text()}`);
   const body = await res.json();
 
   await savePersistentToken(body.user.persistentToken);
@@ -531,7 +531,7 @@ async function doSetenv(name, value, opts) {
     },
     body: JSON.stringify({env}),
   });
-  if (!res.ok) throw new Error(`Glitch v0 projects setenv response ${res.status} not ok`);
+  if (!res.ok) throw new Error(`Glitch v0 projects setenv response ${res.status} not ok, body ${await res.text()}`);
 }
 
 async function doExec(command, opts) {
@@ -557,7 +557,7 @@ async function doExec(command, opts) {
     process.stdout.write(body.stdout);
     process.exitCode = body.signal || body.code;
   } else {
-    throw new Error(`Glitch v0 projects exec response ${res.status} not ok`);
+    throw new Error(`Glitch v0 projects exec response ${res.status} not ok, body ${await res.text()}`);
   }
 }
 
@@ -572,7 +572,7 @@ async function doTerm(command, opts) {
       'Authorization': await getPersistentToken(),
     },
   });
-  if (!res.ok) throw new Error(`Glitch projects single purpose tokens terminal response ${res.status} not ok`);
+  if (!res.ok) throw new Error(`Glitch projects single purpose tokens terminal response ${res.status} not ok, body ${await res.text()}`);
   const body = await res.json();
 
   let done = false;
@@ -641,7 +641,7 @@ async function doPipe(command, opts) {
       'Authorization': await getPersistentToken(),
     },
   });
-  if (!res.ok) throw new Error(`Glitch projects single purpose tokens terminal response ${res.status} not ok`);
+  if (!res.ok) throw new Error(`Glitch projects single purpose tokens terminal response ${res.status} not ok, body ${await res.text()}`);
   const body = await res.json();
 
   let done = false;
@@ -837,7 +837,7 @@ SNAIL_EOF`;
     process.stdout.write(body.stdout);
     process.exitCode = body.signal || body.code;
   } else {
-    throw new Error(`Glitch v0 projects exec response ${res.status} not ok`);
+    throw new Error(`Glitch v0 projects exec response ${res.status} not ok, body ${await res.text()}`);
   }
 }
 
@@ -869,7 +869,7 @@ cat /app/.data/.snail/ssh/ssh_host_*_key.pub`;
     process.stdout.write(body.stdout);
     process.exitCode = body.signal || body.code;
   } else {
-    throw new Error(`Glitch v0 projects exec response ${res.status} not ok`);
+    throw new Error(`Glitch v0 projects exec response ${res.status} not ok, body ${await res.text()}`);
   }
 }
 
@@ -926,14 +926,14 @@ async function doStop(opts) {
       'Authorization': await getPersistentToken(),
     },
   });
-  if (!res.ok) throw new Error(`Glitch projects stop response ${res.status} not ok`);
+  if (!res.ok) throw new Error(`Glitch projects stop response ${res.status} not ok, body ${await res.text()}`);
 }
 
 async function doDownload(opts) {
   const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
   const res = await fetch(`https://api.glitch.com/project/download/?authorization=${await getPersistentToken()}&projectId=${project.id}`);
-  if (!res.ok) throw new Error(`Glitch project download response ${res.status} not ok`);
+  if (!res.ok) throw new Error(`Glitch project download response ${res.status} not ok, body ${await res.text()}`);
   let dstStream;
   if (opts.output === '-') {
     dstStream = process.stdout;
@@ -958,7 +958,7 @@ async function doAPolicy(opts) {
       'Origin': 'https://glitch.com',
     },
   });
-  if (!res.ok) throw new Error(`Glitch projects policy response ${res.status} not ok`);
+  if (!res.ok) throw new Error(`Glitch projects policy response ${res.status} not ok, body ${await res.text()}`);
   const body = await res.json();
   console.log(JSON.stringify(body));
 }
@@ -977,7 +977,7 @@ async function doAPush(src, opts) {
       'Origin': 'https://glitch.com',
     },
   });
-  if (!policyRes.ok) throw new Error(`Glitch projects policy response ${policyRes.status} not ok`);
+  if (!policyRes.ok) throw new Error(`Glitch projects policy response ${policyRes.status} not ok, body ${await policyRes.text()}`);
   const body = await policyRes.json();
   const policy = JSON.parse(Buffer.from(body.policy, 'base64').toString('utf8'));
   let bucket, keyPrefix, acl;
@@ -1003,7 +1003,7 @@ async function doAPush(src, opts) {
   // node-fetch is variously annoying about how it sends FormData
   // https://github.com/node-fetch/node-fetch/pull/1020
   const uploadRes = await util.promisify(form.submit).call(form, `https://s3.amazonaws.com/${bucket}`);
-  if (uploadRes.statusCode < 200 || uploadRes.statusCode >= 300) throw new Error(`S3 upload response ${uploadRes.statusCode} not ok`);
+  if (uploadRes.statusCode < 200 || uploadRes.statusCode >= 300) throw new Error(`S3 upload response ${uploadRes.statusCode} not ok, body ${await readResponseString(uploadRes)}`);
   // empirically, 20MiB works, (20Mi + 1)B gives 503 on cdn.glitch.global
   const cdnHost = srcSize > (20 * 1024 * 1024) ? 'cdn.glitch.me' : 'cdn.glitch.global';
   console.log(`https://${cdnHost}/${keyPrefix}${encodeURIComponent(key)}?v=${Date.now()}`);
@@ -1030,7 +1030,7 @@ async function doACp(src, dst, opts) {
       sourceKey,
     }),
   });
-  if (!res.ok) throw new Error(`Glitch projects asset response ${res.status} not ok`);
+  if (!res.ok) throw new Error(`Glitch projects asset response ${res.status} not ok, body ${await res.text()}`);
   console.log(`https://cdn.glitch.global/${project.id}/${encodeURIComponent(dst)}?v=${Date.now()}`);
 }
 
@@ -1542,7 +1542,7 @@ async function doHours() {
       'Authorization': persistentToken,
     },
   });
-  if (!uptimeRes.ok) throw new Error(`Glitch users uptime response ${uptimeRes.status} not ok`);
+  if (!uptimeRes.ok) throw new Error(`Glitch users uptime response ${uptimeRes.status} not ok, body ${await uptimeRes.text()}`);
   const uptimeBody = await uptimeRes.json();
 
   if (!uptimeBody.accountInGoodStanding) {
@@ -1563,7 +1563,7 @@ async function doHours() {
         'Authorization': persistentToken,
       },
     });
-    if (!projectsRes.ok) throw new Error(`Glitch projects by ID response ${projectsRes.status} not ok`);
+    if (!projectsRes.ok) throw new Error(`Glitch projects by ID response ${projectsRes.status} not ok, body ${await projectsRes.text()}`);
     const projects = await projectsRes.json();
     for (const id of batch) {
       let domain;
@@ -1593,7 +1593,7 @@ async function doProjectCreate(domain, opts) {
     },
     body: JSON.stringify(reqBody),
   });
-  if (!res.ok) throw new Error(`Glitch projects by domain remix response ${res.status} not ok`);
+  if (!res.ok) throw new Error(`Glitch projects by domain remix response ${res.status} not ok, body ${await res.text()}`);
   const project = await res.json();
   console.log(project.domain);
   if (opts.remote) {
@@ -1651,7 +1651,7 @@ async function doProjectUpdate(opts) {
     },
     body: JSON.stringify(reqBody),
   });
-  if (!res.ok) throw new Error(`Glitch projects patch response ${res.status} not ok`);
+  if (!res.ok) throw new Error(`Glitch projects patch response ${res.status} not ok, body ${await res.text()}`);
 }
 
 async function doProjectDelete(opts) {
@@ -1663,7 +1663,7 @@ async function doProjectDelete(opts) {
       'Authorization': await getPersistentToken(),
     },
   });
-  if (!res.ok) throw new Error(`Glitch projects delete response ${res.status} not ok`);
+  if (!res.ok) throw new Error(`Glitch projects delete response ${res.status} not ok, body ${await res.text()}`);
 }
 
 async function doProjectUndelete(opts) {
@@ -1676,7 +1676,7 @@ async function doProjectUndelete(opts) {
       'Authorization': await getPersistentToken(),
     },
   });
-  if (!projectRes.ok) throw new Error(`Glitch v0 projects response ${projectRes.status} not ok`);
+  if (!projectRes.ok) throw new Error(`Glitch v0 projects response ${projectRes.status} not ok, body ${await projectRes.text()}`);
   const project = await projectRes.json();
   const res = await fetch(`https://api.glitch.com/v1/projects/${project.id}/undelete`, {
     method: 'POST',
@@ -1684,7 +1684,7 @@ async function doProjectUndelete(opts) {
       'Authorization': await getPersistentToken(),
     },
   });
-  if (!res.ok) throw new Error(`Glitch projects undelete response ${res.status} not ok`);
+  if (!res.ok) throw new Error(`Glitch projects undelete response ${res.status} not ok, body ${await res.text()}`);
 }
 
 async function doProjectList(opts) {
@@ -1702,7 +1702,7 @@ async function doProjectList(opts) {
           'Authorization': persistentToken,
         },
       });
-      if (!res.ok) throw new Error(`Glitch users deleted projects response ${res.status} not ok`);
+      if (!res.ok) throw new Error(`Glitch users deleted projects response ${res.status} not ok, body ${await res.text()}`);
       body = await res.json();
     } else {
       const res = await fetch(`https://api.glitch.com/v1/users/${user.id}/projects?limit=${LIMIT}&orderKey=createdAt&orderDirection=ASC${pageParam}`, {
@@ -1710,7 +1710,7 @@ async function doProjectList(opts) {
           'Authorization': persistentToken,
         },
       });
-      if (!res.ok) throw new Error(`Glitch users projects response ${res.status} not ok`);
+      if (!res.ok) throw new Error(`Glitch users projects response ${res.status} not ok, body ${await res.text()}`);
       body = await res.json();
     }
 
@@ -1746,7 +1746,7 @@ async function doMemberAdd(login, opts) {
       accessLevel: ACCESS_LEVEL_MEMBER,
     }),
   });
-  if (!res.ok) throw new Error(`Glitch v0 project permissions response ${res.status} not ok`);
+  if (!res.ok) throw new Error(`Glitch v0 project permissions response ${res.status} not ok, body ${await res.text()}`);
 }
 
 async function doMemberRm(login, opts) {
@@ -1760,7 +1760,7 @@ async function doMemberRm(login, opts) {
       'Authorization': await getPersistentToken(),
     },
   });
-  if (!res.ok) throw new Error(`Glitch projects users delete response ${res.status} not ok`);
+  if (!res.ok) throw new Error(`Glitch projects users delete response ${res.status} not ok, body ${await res.text()}`);
 }
 
 async function doMemberLeave(opts) {
@@ -1774,7 +1774,7 @@ async function doMemberLeave(opts) {
       'Authorization': await getPersistentToken(),
     },
   });
-  if (!res.ok) throw new Error(`Glitch projects users delete response ${res.status} not ok`);
+  if (!res.ok) throw new Error(`Glitch projects users delete response ${res.status} not ok, body ${await res.text()}`);
 }
 
 async function doMemberList(opts) {
@@ -1782,7 +1782,7 @@ async function doMemberList(opts) {
   const project = await getProjectByDomain(projectDomain);
   const idParams = project.permissions.map((permission) => `id=${permission.userId}`).join('&');
   const res = await fetch(`https://api.glitch.com/v1/users/by/id?${idParams}`);
-  if (!res.ok) throw new Error(`Glitch users by ID response ${res.status} not ok`);
+  if (!res.ok) throw new Error(`Glitch users by ID response ${res.status} not ok, body ${await res.text()}`);
   const users = await res.json();
   console.log('   User ID  Access level  User login');
   for (const permission of project.permissions) {
@@ -1805,7 +1805,7 @@ async function doDomainAdd(domain, opts) {
     },
     body: JSON.stringify({domain}),
   });
-  if (!res.ok) throw new Error(`Glitch projects domains response ${res.status} not ok`);
+  if (!res.ok) throw new Error(`Glitch projects domains response ${res.status} not ok, body ${await res.text()}`);
 }
 
 async function doDomainRm(domain, opts) {
@@ -1819,7 +1819,7 @@ async function doDomainRm(domain, opts) {
     },
     body: JSON.stringify({domain}),
   });
-  if (!res.ok) throw new Error(`Glitch projects domains delete response ${res.status} not ok`);
+  if (!res.ok) throw new Error(`Glitch projects domains delete response ${res.status} not ok, body ${await res.text()}`);
 }
 
 async function doDomainList(opts) {
@@ -1830,7 +1830,7 @@ async function doDomainList(opts) {
       'Authorization': await getPersistentToken(),
     },
   });
-  if (!res.ok) throw new Error(`Glitch projects domains response ${res.status} not ok`);
+  if (!res.ok) throw new Error(`Glitch projects domains response ${res.status} not ok, body ${await res.text()}`);
   const body = await res.json();
   for (const domain of body.items) {
     console.log(domain.hostname);
@@ -1859,7 +1859,7 @@ async function doWebTerm(opts) {
         'Authorization': await getPersistentToken(),
       },
     });
-    if (!res.ok) throw new Error(`Glitch projects single purpose tokens terminal response ${res.status} not ok`);
+    if (!res.ok) throw new Error(`Glitch projects single purpose tokens terminal response ${res.status} not ok, body ${await res.text()}`);
     const body = await res.json();
     console.log(`https://api.glitch.com/console/${body.token}/`);
   } else {
@@ -1877,7 +1877,7 @@ async function doWebDebugger(opts) {
         'Authorization': await getPersistentToken(),
       },
     });
-    if (!res.ok) throw new Error(`Glitch projects single purpose tokens devtools response ${res.status} not ok`);
+    if (!res.ok) throw new Error(`Glitch projects single purpose tokens devtools response ${res.status} not ok, body ${await res.text()}`);
     const body = await res.json();
     console.log(`devtools://devtools/bundled/inspector.html?ws=api.glitch.com:80/project/debugger/${body.token}`);
   } else {
