@@ -158,118 +158,6 @@ function otNewId() {
   return crypto.randomBytes(6).toString('hex');
 }
 
-class OtClient {
-
-  constructor(ws, opts) {
-    this.ws = ws;
-    this.opts = opts;
-    this.clientId = null;
-    this.version = null;
-    this.masterPromised = null;
-    this.masterRequested = null;
-    this.docPromised = {};
-    this.docRequested = {};
-    this.opListRequested = {};
-    this.onmessage = null;
-    this.ws.on('message', (data) => {
-      const msg = JSON.parse(data);
-      if (this.opts.debug) {
-        console.error('<', util.inspect(msg, {depth: null, colors: true}));
-      }
-      if (this.onmessage) {
-        this.onmessage(msg);
-      }
-      switch (msg.type) {
-        case 'master-state': {
-          this.version = msg.state.version;
-          const {resolve} = this.masterRequested;
-          this.masterRequested = null;
-          resolve(msg);
-          break;
-        }
-        case 'register-document': {
-          const doc = msg.document;
-          const children = doc.children;
-          doc.children = {};
-          for (const k in children) {
-            doc.children[k] = children[k].docId;
-          }
-          const {resolve} = this.docRequested[doc.docId];
-          delete this.docRequested[doc.docId];
-          resolve(doc);
-          break;
-        }
-        case 'accepted-oplist': {
-          const opList = msg.opList;
-          const {resolve} = this.opListRequested[opList.id];
-          delete this.opListRequested[opList.id];
-          this.version = opList.version + 1;
-          resolve();
-          break;
-        }
-        case 'rejected-oplist': {
-          const opList = msg.opList;
-          const {reject} = this.opListRequested[opList.id];
-          delete this.opListRequested[opList.id];
-          reject(new Error(`oplist ${opList.id} rejected`));
-          break;
-        }
-      }
-    });
-  }
-
-  send(msg) {
-    if (this.opts.debug) {
-      console.error('>', util.inspect(msg, {depth: null, colors: true}));
-    }
-    this.ws.send(JSON.stringify(msg));
-  }
-
-  fetchMaster() {
-    if (!this.masterPromised) {
-      this.clientId = otNewId();
-      this.masterPromised = new Promise((resolve, reject) => {
-        this.masterRequested = {resolve, reject};
-        this.send({
-          type: 'master-state',
-          clientId: this.clientId,
-          // the editor also sends `force: true`
-        });
-      });
-    }
-    return this.masterPromised;
-  }
-
-  fetchDoc(docId) {
-    if (!(docId in this.docPromised)) {
-      this.docPromised[docId] = new Promise((resolve, reject) => {
-        this.docRequested[docId] = {resolve, reject};
-        this.send({
-          type: 'register-document',
-          docId,
-        });
-      });
-    }
-    return this.docPromised[docId];
-  }
-
-  broadcastOps(ops) {
-    const id = otNewId();
-    return new Promise((resolve, reject) => {
-      this.opListRequested[id] = {resolve, reject};
-      this.send({
-        type: 'client-oplist',
-        opList: {
-          id,
-          version: this.version,
-          ops,
-        },
-      });
-    });
-  }
-
-}
-
 function otRequireDir(doc) {
   if (doc.docType !== 'directory') throw new Error(`document ${doc.docId} is not a directory`);
 }
@@ -278,24 +166,135 @@ function otRequireNotDir(doc) {
   if (doc.docType === 'directory') throw new Error(`document ${doc.docId} is a directory`);
 }
 
-async function otFetchDot(c) {
-  const root = await c.fetchDoc('root');
-  return await c.fetchDoc(root.children['.']);
+function otClientAttach(ws, opts) {
+  const c = {
+    ws,
+    opts,
+    clientId: null,
+    version: null,
+    masterPromised: null,
+    masterRequested: null,
+    docPromised: {},
+    docRequested: {},
+    opListRequested: {},
+    onmessage: null,
+  };
+  c.ws.on('message', (data) => {
+    const msg = JSON.parse(data);
+    if (c.opts.debug) {
+      console.error('<', util.inspect(msg, {depth: null, colors: true}));
+    }
+    if (c.onmessage) {
+      c.onmessage(msg);
+    }
+    switch (msg.type) {
+      case 'master-state': {
+        c.version = msg.state.version;
+        const {resolve} = c.masterRequested;
+        c.masterRequested = null;
+        resolve(msg);
+        break;
+      }
+      case 'register-document': {
+        const doc = msg.document;
+        const children = doc.children;
+        doc.children = {};
+        for (const k in children) {
+          doc.children[k] = children[k].docId;
+        }
+        const {resolve} = c.docRequested[doc.docId];
+        delete c.docRequested[doc.docId];
+        resolve(doc);
+        break;
+      }
+      case 'accepted-oplist': {
+        const opList = msg.opList;
+        const {resolve} = c.opListRequested[opList.id];
+        delete c.opListRequested[opList.id];
+        c.version = opList.version + 1;
+        resolve();
+        break;
+      }
+      case 'rejected-oplist': {
+        const opList = msg.opList;
+        const {reject} = c.opListRequested[opList.id];
+        delete c.opListRequested[opList.id];
+        reject(new Error(`oplist ${opList.id} rejected`));
+        break;
+      }
+    }
+  });
+  return c;
 }
 
-async function otResolveExisting(c, names) {
-  let doc = await otFetchDot(c);
+function otClientSend(c, msg) {
+  if (c.opts.debug) {
+    console.error('>', util.inspect(msg, {depth: null, colors: true}));
+  }
+  c.ws.send(JSON.stringify(msg));
+}
+
+function otClientFetchMaster(c) {
+  if (!c.masterPromised) {
+    c.clientId = otNewId();
+    c.masterPromised = new Promise((resolve, reject) => {
+      c.masterRequested = {resolve, reject};
+      otClientSend(c, {
+        type: 'master-state',
+        clientId: c.clientId,
+        // the editor also sends `force: true`
+      });
+    });
+  }
+  return c.masterPromised;
+}
+
+function otClientFetchDoc(c, docId) {
+  if (!(docId in c.docPromised)) {
+    c.docPromised[docId] = new Promise((resolve, reject) => {
+      c.docRequested[docId] = {resolve, reject};
+      otClientSend(c, {
+        type: 'register-document',
+        docId,
+      });
+    });
+  }
+  return c.docPromised[docId];
+}
+
+function otClientBroadcastOps(c, ops) {
+  const id = otNewId();
+  return new Promise((resolve, reject) => {
+    c.opListRequested[id] = {resolve, reject};
+    otClientSend(c, {
+      type: 'client-oplist',
+      opList: {
+        id,
+        version: c.version,
+        ops,
+      },
+    });
+  });
+}
+
+async function otClientFetchDot(c) {
+  const root = (await otClientFetchDoc(c, 'root'));
+  return await otClientFetchDoc(c, root.children['.']);
+}
+
+async function otClientResolveExisting(c, names) {
+  let doc = await otClientFetchDot(c);
   for (const name of names) {
     otRequireDir(doc);
     if (name === '' || name === '.') continue;
     if (!(name in doc.children)) throw new Error(`${name} not found in document ${doc.docId}`);
-    doc = await c.fetchDoc(doc.children[name]);
+    doc = await otClientFetchDoc(c, doc.children[name]);
   }
   return doc;
 }
 
-async function otResolveOrCreateParents(c, ops, names, fallbackName) {
-  let doc = await otFetchDot(c);
+async function otClientResolveOrCreateParents(c, ops, names, fallbackName) {
+  let doc = await otClientFetchDot(c);
   let docIndex = 0;
 
   for (; docIndex < names.length; docIndex++) {
@@ -303,7 +302,7 @@ async function otResolveOrCreateParents(c, ops, names, fallbackName) {
     const name = names[docIndex];
     if (name === '' || name === '.') continue;
     if (!(name in doc.children)) break;
-    doc = await c.fetchDoc(doc.children[name]);
+    doc = await otClientFetchDoc(c, doc.children[name]);
   }
 
   for (; docIndex < names.length - 1; docIndex++) {
@@ -320,7 +319,7 @@ async function otResolveOrCreateParents(c, ops, names, fallbackName) {
   if (doc.docType === 'directory') {
     const name = docIndex < names.length && names[docIndex] || fallbackName;
     if (name && name in doc.children) {
-      doc = await c.fetchDoc(doc.children[name]);
+      doc = await otClientFetchDoc(c, doc.children[name]);
       return {existing: doc};
     } else {
       return {parent: doc, name};
@@ -1062,7 +1061,7 @@ async function doOtPush(src, dst, opts) {
 
   let done = false;
   const ws = new WebSocket(`wss://api.glitch.com/${project.id}/ot?authorization=${await getPersistentToken()}`);
-  const c = new OtClient(ws, opts);
+  const c = otClientAttach(ws, opts);
   ws.on('error', (e) => {
     console.error(e);
   });
@@ -1079,7 +1078,7 @@ async function doOtPush(src, dst, opts) {
     (async () => {
       try {
         const ops = [];
-        const dstAccess = await otResolveOrCreateParents(c, ops, dstNames, srcBasename);
+        const dstAccess = await otClientResolveOrCreateParents(c, ops, dstNames, srcBasename);
         if ('existing' in dstAccess) {
           otRequireNotDir(dstAccess.existing);
           if ('base64Content' in dstAccess.existing) {
@@ -1131,8 +1130,8 @@ async function doOtPush(src, dst, opts) {
           });
         }
 
-        await c.fetchMaster();
-        await c.broadcastOps(ops);
+        await otClientFetchMaster(c);
+        await otClientBroadcastOps(c, ops);
 
         done = true;
         ws.close();
@@ -1155,7 +1154,7 @@ async function doOtPull(src, dst, opts) {
 
   let done = false;
   const ws = new WebSocket(`wss://api.glitch.com/${project.id}/ot?authorization=${await getPersistentToken()}`);
-  const c = new OtClient(ws, opts);
+  const c = otClientAttach(ws, opts);
   ws.on('error', (e) => {
     console.error(e);
   });
@@ -1171,7 +1170,7 @@ async function doOtPull(src, dst, opts) {
     }
     (async () => {
       try {
-        const doc = await otResolveExisting(c, srcNames);
+        const doc = await otClientResolveExisting(c, srcNames);
 
         done = true;
         ws.close();
@@ -1211,7 +1210,7 @@ async function doOtMv(src, dst, opts) {
 
   let done = false;
   const ws = new WebSocket(`wss://api.glitch.com/${project.id}/ot?authorization=${await getPersistentToken()}`);
-  const c = new OtClient(ws, opts);
+  const c = otClientAttach(ws, opts);
   ws.on('error', (e) => {
     console.error(e);
   });
@@ -1227,10 +1226,10 @@ async function doOtMv(src, dst, opts) {
     }
     (async () => {
       try {
-        const doc = await otResolveExisting(c, srcNames);
+        const doc = await otClientResolveExisting(c, srcNames);
 
         const ops = [];
-        const dstAccess = await otResolveOrCreateParents(c, ops, dstNames, srcBasename);
+        const dstAccess = await otClientResolveOrCreateParents(c, ops, dstNames, srcBasename);
         if ('existing' in dstAccess) {
           otRequireNotDir(doc);
           otRequireNotDir(dstAccess.existing);
@@ -1249,8 +1248,8 @@ async function doOtMv(src, dst, opts) {
           });
         }
 
-        await c.fetchMaster();
-        await c.broadcastOps(ops);
+        await otClientFetchMaster(c);
+        await otClientBroadcastOps(c, ops);
 
         done = true;
         ws.close();
@@ -1272,7 +1271,7 @@ async function doOtRm(pathArg, opts) {
 
   let done = false;
   const ws = new WebSocket(`wss://api.glitch.com/${project.id}/ot?authorization=${await getPersistentToken()}`);
-  const c = new OtClient(ws, opts);
+  const c = otClientAttach(ws, opts);
   ws.on('error', (e) => {
     console.error(e);
   });
@@ -1288,7 +1287,7 @@ async function doOtRm(pathArg, opts) {
     }
     (async () => {
       try {
-        const doc = await otResolveExisting(c, names);
+        const doc = await otClientResolveExisting(c, names);
 
         const ops = [];
         ops.push({
@@ -1296,8 +1295,8 @@ async function doOtRm(pathArg, opts) {
           docId: doc.docId,
         });
 
-        await c.fetchMaster();
-        await c.broadcastOps(ops);
+        await otClientFetchMaster(c);
+        await otClientBroadcastOps(c, ops);
 
         done = true;
         ws.close();
@@ -1319,7 +1318,7 @@ async function doOtLs(pathArg, opts) {
 
   let done = false;
   const ws = new WebSocket(`wss://api.glitch.com/${project.id}/ot?authorization=${await getPersistentToken()}`);
-  const c = new OtClient(ws, opts);
+  const c = otClientAttach(ws, opts);
   ws.on('error', (e) => {
     console.error(e);
   });
@@ -1335,7 +1334,7 @@ async function doOtLs(pathArg, opts) {
     }
     (async () => {
       try {
-        const doc = await otResolveExisting(c, names);
+        const doc = await otClientResolveExisting(c, names);
 
         done = true;
         ws.close();
@@ -1393,11 +1392,11 @@ async function doOtRequestJoin(opts) {
 
   let done = false;
   const ws = new WebSocket(`wss://api.glitch.com/${project.id}/ot?authorization=${user.persistentToken}`);
-  const c = new OtClient(ws, opts);
+  const c = otClientAttach(ws, opts);
 
   let nagTimer = null;
   function nag() {
-    c.send({
+    otClientSend(c, {
       type: 'broadcast',
       payload: {
         user: nagUser,
@@ -1436,7 +1435,7 @@ async function doOtRequestJoin(opts) {
     }
     (async () => {
       try {
-        await c.fetchMaster();
+        await otClientFetchMaster(c);
 
         console.error(`Requesting to join as ${nagUser.name || nagUser.login || 'Anonymous'}`);
         nag();
@@ -1445,7 +1444,7 @@ async function doOtRequestJoin(opts) {
         const invitedUser = await invitePromised;
 
         clearInterval(nagTimer);
-        c.send({
+        otClientSend(c, {
           type: 'broadcast',
           payload: {
             user: {
@@ -1488,7 +1487,7 @@ async function doOtStatus(opts) {
   const LINES_PER_HEADER = 23;
   let linesUntilHeader = 0;
   const ws = new WebSocket(`wss://api.glitch.com/${project.id}/ot?authorization=${await getPersistentToken()}`);
-  const c = new OtClient(ws, opts);
+  const c = otClientAttach(ws, opts);
   c.onmessage = (msg) => {
     if (msg.type === 'broadcast' && msg.payload.type === 'project-stats') {
       if (!linesUntilHeader) {
@@ -1525,7 +1524,7 @@ async function doOtStatus(opts) {
     }
     (async () => {
       try {
-        await c.fetchMaster();
+        await otClientFetchMaster(c);
       } catch (e) {
         console.error(e);
         process.exit(1);
