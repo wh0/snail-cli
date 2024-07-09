@@ -2,7 +2,7 @@ typecheck
 - `tsc -p jsconfig.json`
 
 lint
-- `eslint *.js src`
+- `eslint *.js misc pocs src`
 
 bump dependencies
 - `pnpm outdated`
