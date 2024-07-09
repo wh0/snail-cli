@@ -26,7 +26,7 @@ async function failIfPersistentTokenSaved() {
   try {
     await fs.promises.stat(persistentTokenPath);
     persistentTokenExists = true;
-  } catch (e) {
+  } catch (/** @type {any} */ e) {
     if (e.code !== 'ENOENT') throw e;
   }
   if (persistentTokenExists) {
@@ -34,7 +34,7 @@ async function failIfPersistentTokenSaved() {
   }
 }
 
-async function savePersistentToken(persistentToken) {
+async function savePersistentToken(/** @type {string} */ persistentToken) {
   const persistentTokenPath = getPersistentTokenPath();
   await fs.promises.mkdir(path.dirname(persistentTokenPath), {recursive: true});
   await fs.promises.writeFile(persistentTokenPath, persistentToken + '\n', {flag: 'wx', mode: 0o600});
@@ -49,7 +49,7 @@ async function getPersistentTokenFromConfig() {
   let data;
   try {
     data = await fs.promises.readFile(persistentTokenPath, 'utf8');
-  } catch (e) {
+  } catch (/** @type {any} */ e) {
     if (e.code === 'ENOENT') return null;
     throw e;
   }
@@ -66,9 +66,9 @@ async function getPersistentToken() {
   return persistentToken;
 }
 
-function readResponse(res) {
+function readResponse(/** @type {import('http').IncomingMessage} */ res) {
   return new Promise((resolve, reject) => {
-    const chunks = [];
+    const chunks = /** @type {Buffer[]} */ ([]);
     res.on('data', (chunk) => {
       chunks.push(chunk);
     });
@@ -81,7 +81,7 @@ function readResponse(res) {
   });
 }
 
-async function readResponseString(res) {
+async function readResponseString(/** @type {import('http').IncomingMessage} */ res) {
   return (await readResponse(res)).toString();
 }
 
@@ -97,7 +97,7 @@ async function boot() {
 
 // project selection
 
-function getProjectDomainFromOpts(opts) {
+function getProjectDomainFromOpts(/** @type {{project?: string}} */ opts) {
   return opts.project;
 }
 
@@ -107,7 +107,7 @@ async function getProjectDomainFromRemote() {
   let result;
   try {
     result = await util.promisify(childProcess.execFile)('git', ['remote', 'get-url', REMOTE_NAME]);
-  } catch (e) {
+  } catch (/** @type {any} */ e) {
     if (e.code === 2) return null;
     // Out of sympathy for places with older Git that doesn't yet have this
     // special exit code, we'll do some string matching too.
@@ -120,17 +120,17 @@ async function getProjectDomainFromRemote() {
   return m[1];
 }
 
-async function getProjectDomainHowever(opts) {
+async function getProjectDomainHowever(/** @type {{project?: string}} */ opts) {
   return getProjectDomainFromOpts(opts) || await getProjectDomainFromRemote();
 }
 
-async function getProjectDomain(opts) {
+async function getProjectDomain(/** @type {{project?: string}} */ opts) {
   const domain = await getProjectDomainHowever(opts);
   if (!domain) throw new Error('Unable to determine which project. Specify (-p) or set up remote (snail remote)');
   return domain;
 }
 
-async function getProjectByDomain(domain) {
+async function getProjectByDomain(/** @type {string} */ domain) {
   const res = await fetch(`https://api.glitch.com/v1/projects/by/domain?domain=${domain}`, {
     headers: {
       'Authorization': await getPersistentToken(),
@@ -144,7 +144,7 @@ async function getProjectByDomain(domain) {
 
 // user selection
 
-async function getUserByLogin(login) {
+async function getUserByLogin(/** @type {string} */ login) {
   const res = await fetch(`https://api.glitch.com/v1/users/by/login?login=${login}`);
   if (!res.ok) throw new Error(`Glitch users by login response ${res.status} not ok, body ${await res.text()}`);
   const body = await res.json();
@@ -154,32 +154,120 @@ async function getUserByLogin(login) {
 
 // ot
 
+/**
+ * @typedef {{
+ *   type: 'add',
+ *   docType: string,
+ *   name: string,
+ *   parentId: string,
+ *   docId: string,
+ * }} OtOpAdd
+ * @typedef {{
+ *   type: 'unlink',
+ *   docId: string,
+ * }} OtOpUnlink
+ * @typedef {{
+ *   type: 'rename',
+ *   docId: string,
+ *   newName: string,
+ *   newParentId: string,
+ * }} OtOpRename
+ * @typedef {{
+ *   type: 'insert',
+ *   docId: string,
+ *   position: number,
+ *   text: string,
+ * }} OtOpInsert
+ * @typedef {{
+ *   type: 'remove',
+ *   docId: string,
+ *   position: number,
+ *   text: string,
+ * }} OtOpRemove
+ * @typedef {(
+ *   OtOpAdd |
+ *   OtOpUnlink |
+ *   OtOpRename |
+ *   OtOpInsert |
+ *   OtOpRemove
+ * )} OtOp
+ * @typedef {{
+ *   name: string,
+ *   docId: string,
+ *   parentId: string,
+ * }} OtDocCommon
+ * @typedef {OtDocCommon & {
+ *   docType: 'directory',
+ *   children: {[name: string]: string},
+ * }} OtDocDirectory
+ * @typedef {OtDocCommon & {
+ *   docType: 'file',
+ *   content: string,
+ * }} OtDocFileText
+ * @typedef {OtDocCommon & {
+ *   docType: 'file',
+ *   base64Content: string,
+ * }} OtDocFileBinary
+ * @typedef {OtDocFileText | OtDocFileBinary} OtDocNotDirectory
+ * @typedef {(
+ *   OtDocDirectory |
+ *   OtDocNotDirectory
+ * )} OtDoc
+ */
+
 function otNewId() {
   return crypto.randomBytes(6).toString('hex');
 }
 
-function otRequireDir(doc) {
+/** @return {asserts doc is OtDocDirectory} */
+function otRequireDir(/** @type {OtDoc} */ doc) {
   if (doc.docType !== 'directory') throw new Error(`document ${doc.docId} is not a directory`);
 }
 
-function otRequireNotDir(doc) {
+/** @return {asserts doc is OtDocNotDirectory} */
+function otRequireNotDir(/** @type {OtDoc} */ doc) {
   if (doc.docType === 'directory') throw new Error(`document ${doc.docId} is a directory`);
 }
 
-function otClientAttach(ws, opts) {
-  const c = {
+/**
+ * @typedef {{
+ *   resolve: any,
+ *   reject: any,
+ * }} Resolvers
+ */
+
+/**
+ * @typedef {{
+ *   debug?: boolean,
+ * }} OtClientOptions
+ * @typedef {{
+ *   ws: import('ws'),
+ *   opts: OtClientOptions,
+ *   clientId: string,
+ *   version: number,
+ *   masterPromised: Promise<any> | null,
+ *   masterRequested: Resolvers,
+ *   docPromised: {[docId: string]: Promise<OtDoc>},
+ *   docRequested: {[docId: string]: Resolvers},
+ *   opListRequested: {[opListId: string]: Resolvers},
+ *   onmessage: ((message: any) => void) | null,
+ * }} OtClient
+ */
+
+function otClientAttach(/** @type {import('ws')} */ ws, /** @type {OtClientOptions} */ opts) {
+  const c = /** @type {OtClient} */ ({
     ws,
     opts,
-    clientId: null,
-    version: null,
+    clientId: /** @type {never} */ (null),
+    version: /** @type {never} */ (null),
     masterPromised: null,
-    masterRequested: null,
+    masterRequested: /** @type {never} */ (null),
     docPromised: {},
     docRequested: {},
     opListRequested: {},
     onmessage: null,
-  };
-  c.ws.on('message', (data) => {
+  });
+  c.ws.on('message', (/** @type {string} */ data) => {
     const msg = JSON.parse(data);
     if (c.opts.debug) {
       console.error('<', util.inspect(msg, {depth: null, colors: true}));
@@ -191,7 +279,7 @@ function otClientAttach(ws, opts) {
       case 'master-state': {
         c.version = msg.state.version;
         const {resolve} = c.masterRequested;
-        c.masterRequested = null;
+        c.masterRequested = /** @type {never} */ (null);
         resolve(msg);
         break;
       }
@@ -227,14 +315,14 @@ function otClientAttach(ws, opts) {
   return c;
 }
 
-function otClientSend(c, msg) {
+function otClientSend(/** @type {OtClient} */ c, /** @type {any} */ msg) {
   if (c.opts.debug) {
     console.error('>', util.inspect(msg, {depth: null, colors: true}));
   }
   c.ws.send(JSON.stringify(msg));
 }
 
-function otClientFetchMaster(c) {
+function otClientFetchMaster(/** @type {OtClient} */ c) {
   if (!c.masterPromised) {
     c.clientId = otNewId();
     c.masterPromised = new Promise((resolve, reject) => {
@@ -249,7 +337,7 @@ function otClientFetchMaster(c) {
   return c.masterPromised;
 }
 
-function otClientFetchDoc(c, docId) {
+function otClientFetchDoc(/** @type {OtClient} */ c, /** @type {string} */ docId) {
   if (!(docId in c.docPromised)) {
     c.docPromised[docId] = new Promise((resolve, reject) => {
       c.docRequested[docId] = {resolve, reject};
@@ -262,7 +350,7 @@ function otClientFetchDoc(c, docId) {
   return c.docPromised[docId];
 }
 
-function otClientBroadcastOps(c, ops) {
+function otClientBroadcastOps(/** @type {OtClient} */ c, /** @type {OtOp[]} */ ops) {
   const id = otNewId();
   return new Promise((resolve, reject) => {
     c.opListRequested[id] = {resolve, reject};
@@ -277,12 +365,12 @@ function otClientBroadcastOps(c, ops) {
   });
 }
 
-async function otClientFetchDot(c) {
-  const root = (await otClientFetchDoc(c, 'root'));
+async function otClientFetchDot(/** @type {OtClient} */ c) {
+  const root = /** @type {OtDocDirectory} */ (await otClientFetchDoc(c, 'root'));
   return await otClientFetchDoc(c, root.children['.']);
 }
 
-async function otClientResolveExisting(c, names) {
+async function otClientResolveExisting(/** @type {OtClient} */ c, /** @type {string[]} */ names) {
   let doc = await otClientFetchDot(c);
   for (const name of names) {
     otRequireDir(doc);
@@ -293,7 +381,13 @@ async function otClientResolveExisting(c, names) {
   return doc;
 }
 
-async function otClientResolveOrCreateParents(c, ops, names, fallbackName) {
+/** @return {Promise<{existing: OtDoc} | {parent: OtDoc, name: string | null}>} */
+async function otClientResolveOrCreateParents(
+  /** @type {OtClient} */ c,
+  /** @type {OtOp[]} */ ops,
+  /** @type {string[]} */ names,
+  /** @type {string | null} */ fallbackName,
+) {
   let doc = await otClientFetchDot(c);
   let docIndex = 0;
 
@@ -306,14 +400,14 @@ async function otClientResolveOrCreateParents(c, ops, names, fallbackName) {
   }
 
   for (; docIndex < names.length - 1; docIndex++) {
-    doc = {
+    const commonFields = {
       name: names[docIndex],
       docId: otNewId(),
-      docType: 'directory',
+      docType: /** @type {const} */ ('directory'),
       parentId: doc.docId,
     };
-    ops.push({type: 'add', ...doc});
-    doc.children = {};
+    ops.push({type: 'add', ...commonFields});
+    doc = {...commonFields, children: {}};
   }
 
   if (doc.docType === 'directory') {
@@ -331,12 +425,12 @@ async function otClientResolveOrCreateParents(c, ops, names, fallbackName) {
 
 // file utilities
 
-async function guessSingleDestination(dst, name) {
+async function guessSingleDestination(/** @type {string} */ dst, /** @type {string} */ name) {
   if (dst.endsWith(path.sep) || dst.endsWith(path.posix.sep)) return dst + name;
   let dstStats = null;
   try {
     dstStats = await fs.promises.stat(dst);
-  } catch (e) {
+  } catch (/** @type {any} */ e) {
     if (e.code === 'ENOENT') return dst;
     throw e;
   }
@@ -346,17 +440,18 @@ async function guessSingleDestination(dst, name) {
 
 // shell helpers
 
-function shellWord(s) {
+function shellWord(/** @type {string} */ s) {
   return '\'' + s.replace(/'/g, '\'"\'"\'') + '\'';
 }
 
 // interaction
 
-function noCompletions(line) {
-  return [];
+function noCompletions(/** @type {string} */ line) {
+  // eslint-disable-next-line array-bracket-spacing
+  return [/** @type {string[]} */ ([]), line];
 }
 
-function promptTrimmed(query) {
+function promptTrimmed(/** @type {string} */ query) {
   const readline = require('readline');
   return new Promise((resolve, reject) => {
     const rl = readline.createInterface({
@@ -375,11 +470,12 @@ function promptTrimmed(query) {
   });
 }
 
-function promptPassword(query) {
+function promptPassword(/** @type {string} */ query) {
   const readline = require('readline');
   return new Promise((resolve, reject) => {
-    const maskedStderr = Object.create(process.stdout);
-    maskedStderr.write = (chunk, encoding, callback) => {
+    const maskedStderr = /** @type {typeof process.stdout} */ (Object.create(process.stdout));
+    // @ts-expect-error not all overloads supported
+    maskedStderr.write = (/** @type {string} */ chunk, encoding, callback) => {
       const masked = chunk
         .replace(
           // eslint-disable-next-line no-control-regex
@@ -409,7 +505,7 @@ const ACCESS_LEVEL_MEMBER = 20;
 
 // commands
 
-async function doAuthPersistentToken(persistentToken) {
+async function doAuthPersistentToken(/** @type {string | undefined} */ persistentToken) {
   await failIfPersistentTokenSaved();
 
   const persistentTokenPrompted = persistentToken || await promptPassword('Persistent token');
@@ -429,7 +525,10 @@ async function doAuthAnon() {
   await savePersistentToken(user.persistentToken);
 }
 
-async function doAuthSendEmail(email, opts) {
+async function doAuthSendEmail(
+  /** @type {string | undefined} */ email,
+  /** @type {{interactive: boolean}} */ opts,
+) {
   if (opts.interactive) {
     await failIfPersistentTokenSaved();
   }
@@ -458,7 +557,7 @@ async function doAuthSendEmail(email, opts) {
   }
 }
 
-async function doAuthCode(code) {
+async function doAuthCode(/** @type {string | undefined} */ code) {
   await failIfPersistentTokenSaved();
 
   const codePrompted = code || await promptTrimmed('Code');
@@ -471,7 +570,10 @@ async function doAuthCode(code) {
   await savePersistentToken(body.user.persistentToken);
 }
 
-async function doAuthPassword(email, password) {
+async function doAuthPassword(
+  /** @type {string | undefined} */ email,
+  /** @type {string | undefined} */ password,
+) {
   await failIfPersistentTokenSaved();
 
   const emailPrompted = email || await promptTrimmed('Email');
@@ -492,7 +594,7 @@ async function doAuthPassword(email, password) {
   await savePersistentToken(body.user.persistentToken);
 }
 
-async function doWhoami(opts) {
+async function doWhoami(/** @type {{numeric?: boolean}} */ opts) {
   const {user} = await boot();
   if (opts.numeric) {
     console.log('' + user.id);
@@ -506,12 +608,12 @@ async function doLogout() {
   const persistentTokenPath = getPersistentTokenPath();
   try {
     await fs.promises.unlink(persistentTokenPath);
-  } catch (e) {
+  } catch (/** @type {any} */ e) {
     if (e.code !== 'ENOENT') throw e;
   }
 }
 
-async function doRemote(opts) {
+async function doRemote(/** @type {{project?: string}} */ opts) {
   const projectDomain = getProjectDomainFromOpts(opts);
   if (!projectDomain) throw new Error('Unable to determine which project. Specify (-p)');
   const {user} = await boot();
@@ -519,9 +621,12 @@ async function doRemote(opts) {
   await util.promisify(childProcess.execFile)('git', ['remote', 'add', REMOTE_NAME, url]);
 }
 
-async function doSetenv(name, value, opts) {
-  const env = {};
-  env[name] = value;
+async function doSetenv(
+  /** @type {string} */ name,
+  /** @type {string} */ value,
+  /** @type {{project?: string}} */ opts,
+) {
+  const env = {[name]: value};
   const res = await fetch(`https://api.glitch.com/projects/${await getProjectDomain(opts)}/setenv`, {
     method: 'POST',
     headers: {
@@ -533,7 +638,7 @@ async function doSetenv(name, value, opts) {
   if (!res.ok) throw new Error(`Glitch v0 projects setenv response ${res.status} not ok, body ${await res.text()}`);
 }
 
-async function doExec(command, opts) {
+async function doExec(/** @type {string[]} */ command, /** @type {{project?: string}} */ opts) {
   const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
   const res = await fetch(`https://api.glitch.com/projects/${project.id}/exec`, {
@@ -560,7 +665,10 @@ async function doExec(command, opts) {
   }
 }
 
-async function doTerm(command, opts) {
+async function doTerm(
+  /** @type {string[]} */ command,
+  /** @type {{project?: string, setTransports?: boolean, raw?: boolean}} */ opts,
+) {
   const io = require('socket.io-client');
 
   const projectDomain = await getProjectDomain(opts);
@@ -575,9 +683,9 @@ async function doTerm(command, opts) {
   const body = await res.json();
 
   let done = false;
-  const ioOpts = {
+  const ioOpts = /** @type {SocketIOClient.ConnectOpts} */ ({
     path: `/console/${body.token}/socket.io`,
-  };
+  });
   if (opts.setTransports) {
     ioOpts.transports = ['websocket'];
   }
@@ -590,13 +698,13 @@ async function doTerm(command, opts) {
     });
   }
 
-  socket.once('disconnect', (reason) => {
+  socket.once('disconnect', (/** @type {string} */ reason) => {
     if (!done || reason !== 'io client disconnect') {
       console.error(`Glitch console disconnected: ${reason}`);
       process.exit(1);
     }
   });
-  socket.on('error', (e) => {
+  socket.on('error', (/** @type {any} */ e) => {
     console.error(e);
   });
   socket.once('login', () => {
@@ -617,12 +725,15 @@ async function doTerm(command, opts) {
     process.stdin.pause();
     socket.close();
   });
-  socket.on('data', (data) => {
+  socket.on('data', (/** @type {string} */ data) => {
     process.stdout.write(data);
   });
 }
 
-async function doPipe(command, opts) {
+async function doPipe(
+  /** @type {string[]} */ command,
+  /** @type {{project?: string, setTransports?: boolean, debug?: boolean}} */ opts,
+) {
   const io = require('socket.io-client');
 
   // see pipe-wrap.js
@@ -644,26 +755,26 @@ async function doPipe(command, opts) {
   const body = await res.json();
 
   let done = false;
-  const ioOpts = {
+  const ioOpts = /** @type {SocketIOClient.ConnectOpts} */ ({
     path: `/console/${body.token}/socket.io`,
-  };
+  });
   if (opts.setTransports) {
     ioOpts.transports = ['websocket'];
   }
   const socket = io('https://api.glitch.com', ioOpts);
 
-  socket.once('disconnect', (reason) => {
+  socket.once('disconnect', (/** @type {string} */ reason) => {
     if (!done || reason !== 'io client disconnect') {
       console.error(`Glitch console disconnected: ${reason}`);
       process.exit(1);
     }
   });
-  socket.on('error', (e) => {
+  socket.on('error', (/** @type {any} */ e) => {
     console.error(e);
   });
-  socket.on('data', (data) => {
+  socket.on('data', (/** @type {string} */ data) => {
     const parts = (recvBuf + data).split('\n');
-    recvBuf = parts.pop();
+    recvBuf = /** @type {string} */ (parts.pop());
     for (const part of parts) {
       if (part[0] === ')') {
         switch (part[1]) {
@@ -711,18 +822,17 @@ async function doPipe(command, opts) {
   });
 }
 
-async function doRsync(args) {
+async function doRsync(/** @type {string[]} */ args) {
   const rsyncArgs = ['-e', 'snail rsync-rsh --', ...args];
   const c = childProcess.spawn('rsync', rsyncArgs, {
     stdio: 'inherit',
   });
   c.on('exit', (code, signal) => {
-    process.exitCode = signal ? 1 : code;
+    process.exitCode = signal ? 1 : /** @type {number} */ (code);
   });
 }
 
-async function doRsyncRsh(args) {
-  const host = args.shift();
+async function doRsyncRsh(/** @type {string} */ host, /** @type {string[]} */ args) {
   await commander.program.parseAsync(['pipe', '-p', host, '--', ...args], {from: 'user'});
 }
 
@@ -779,7 +889,7 @@ ${SSHD_CONFIG}EOF
   touch /tmp/.snail/stamp-sshd-config
 fi`;
 
-async function doSshCopyId(fakeHost, opts) {
+async function doSshCopyId(/** @type {string} */ fakeHost, /** @type {{i?: string}} */ opts) {
   const projectDomain = fakeHost.split('.')[0];
   const project = await getProjectByDomain(projectDomain);
   let publicKeyB64;
@@ -804,7 +914,7 @@ async function doSshCopyId(fakeHost, opts) {
         publicKeyB64 = await fs.promises.readFile(pubPath, 'base64');
         found = true;
         break;
-      } catch (e) {
+      } catch (/** @type {any} */ e) {
         if (e.code === 'ENOENT') continue;
         console.error(e);
       }
@@ -840,7 +950,7 @@ SNAIL_EOF`;
   }
 }
 
-async function doSshKeyscan(fakeHost) {
+async function doSshKeyscan(/** @type {string} */ fakeHost) {
   const projectDomain = fakeHost.split('.')[0];
   const project = await getProjectByDomain(projectDomain);
   const command = `set -eu
@@ -872,7 +982,7 @@ cat /app/.data/.snail/ssh/ssh_host_*_key.pub`;
   }
 }
 
-async function doSshProxy(fakeHost) {
+async function doSshProxy(/** @type {string} */ fakeHost) {
   const projectDomain = fakeHost.split('.')[0];
   const script = `set -eu
 
@@ -886,7 +996,7 @@ exec /tmp/.snail/unpack/usr/sbin/sshd -f /tmp/.snail/ssh/sshd_config -i -e`;
   await commander.program.parseAsync(['pipe', '-p', projectDomain, '--', script], {from: 'user'});
 }
 
-async function doLogs(opts) {
+async function doLogs(/** @type {{project?: string, all?: boolean}} */ opts) {
   const WebSocket = require('ws');
 
   const projectDomain = await getProjectDomain(opts);
@@ -897,7 +1007,7 @@ async function doLogs(opts) {
       ws.send('keep alive');
     }, 30000);
   });
-  ws.on('message', (data) => {
+  ws.on('message', (/** @type {string} */ data) => {
     const msg = JSON.parse(data);
     if (opts.all) {
       console.log(msg);
@@ -916,7 +1026,7 @@ async function doLogs(opts) {
   });
 }
 
-async function doStop(opts) {
+async function doStop(/** @type {{project?: string}} */ opts) {
   const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
   const res = await fetch(`https://api.glitch.com/v1/projects/${project.id}/stop`, {
@@ -928,7 +1038,7 @@ async function doStop(opts) {
   if (!res.ok) throw new Error(`Glitch projects stop response ${res.status} not ok, body ${await res.text()}`);
 }
 
-async function doDownload(opts) {
+async function doDownload(/** @type {{project?: string, output?: string}} */ opts) {
   const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
   const res = await fetch(`https://api.glitch.com/project/download/?authorization=${await getPersistentToken()}&projectId=${project.id}`);
@@ -941,14 +1051,14 @@ async function doDownload(opts) {
     if (opts.output) {
       dst = opts.output;
     } else {
-      dst = /attachment; filename=([\w-]+\.tgz)/.exec(res.headers.get('Content-Disposition'))[1];
+      dst = /** @type {RegExpExecArray} */ (/attachment; filename=([\w-]+\.tgz)/.exec(/** @type {string} */ (res.headers.get('Content-Disposition'))))[1];
     }
     dstStream = fs.createWriteStream(dst);
   }
   res.body.pipe(dstStream);
 }
 
-async function doAPolicy(opts) {
+async function doAPolicy(/** @type {{project?: string, type: string}} */ opts) {
   const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
   const res = await fetch(`https://api.glitch.com/v1/projects/${project.id}/policy?contentType=${encodeURIComponent(opts.type)}`, {
@@ -962,7 +1072,10 @@ async function doAPolicy(opts) {
   console.log(JSON.stringify(body));
 }
 
-async function doAPush(src, opts) {
+async function doAPush(
+  /** @type {string} */ src,
+  /** @type {{project?: string, name?: string, type: string, maxAge: string}} */ opts,
+) {
   const FormData = require('form-data');
 
   const srcSize = (await fs.promises.stat(src)).size;
@@ -1002,13 +1115,17 @@ async function doAPush(src, opts) {
   // node-fetch is variously annoying about how it sends FormData
   // https://github.com/node-fetch/node-fetch/pull/1020
   const uploadRes = await util.promisify(form.submit).call(form, `https://s3.amazonaws.com/${bucket}`);
-  if (uploadRes.statusCode < 200 || uploadRes.statusCode >= 300) throw new Error(`S3 upload response ${uploadRes.statusCode} not ok, body ${await readResponseString(uploadRes)}`);
+  if (/** @type {number} */ (uploadRes.statusCode) < 200 || /** @type {number} */ (uploadRes.statusCode) >= 300) throw new Error(`S3 upload response ${uploadRes.statusCode} not ok, body ${await readResponseString(uploadRes)}`);
   // empirically, 20MiB works, (20Mi + 1)B gives 503 on cdn.glitch.global
   const cdnHost = srcSize > (20 * 1024 * 1024) ? 'cdn.glitch.me' : 'cdn.glitch.global';
   console.log(`https://${cdnHost}/${keyPrefix}${encodeURIComponent(key)}?v=${Date.now()}`);
 }
 
-async function doACp(src, dst, opts) {
+async function doACp(
+  /** @type {string} */ src,
+  /** @type {string} */ dst,
+  /** @type {{project?: string}} */ opts,
+) {
   const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
   // don't want protocol, host, ?v= thingy, etc.
@@ -1033,15 +1150,19 @@ async function doACp(src, dst, opts) {
   console.log(`https://cdn.glitch.global/${project.id}/${encodeURIComponent(dst)}?v=${Date.now()}`);
 }
 
-async function doOtPush(src, dst, opts) {
+async function doOtPush(
+  /** @type {string} */ src,
+  /** @type {string} */ dst,
+  /** @type {{project?: string, debug?: boolean}} */ opts,
+) {
   const WebSocket = require('ws');
 
   const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
 
   const dstNames = dst.split('/');
-  let srcBasename;
-  let content;
+  let /** @type {string | null} */ srcBasename;
+  let /** @type {string} */ content;
   if (src === '-') {
     srcBasename = null;
     content = await new Promise((resolve, reject) => {
@@ -1077,7 +1198,7 @@ async function doOtPush(src, dst, opts) {
     }
     (async () => {
       try {
-        const ops = [];
+        const ops = /** @type {OtOp[]} */ ([]);
         const dstAccess = await otClientResolveOrCreateParents(c, ops, dstNames, srcBasename);
         if ('existing' in dstAccess) {
           otRequireNotDir(dstAccess.existing);
@@ -1143,7 +1264,11 @@ async function doOtPush(src, dst, opts) {
   });
 }
 
-async function doOtPull(src, dst, opts) {
+async function doOtPull(
+  /** @type {string} */ src,
+  /** @type {string} */ dst,
+  /** @type {{project?: string, debug?: boolean}} */ opts,
+) {
   const WebSocket = require('ws');
 
   const projectDomain = await getProjectDomain(opts);
@@ -1197,7 +1322,11 @@ async function doOtPull(src, dst, opts) {
   });
 }
 
-async function doOtMv(src, dst, opts) {
+async function doOtMv(
+  /** @type {string} */ src,
+  /** @type {string} */ dst,
+  /** @type {{project?: string, debug?: boolean}} */ opts,
+) {
   const WebSocket = require('ws');
 
   const projectDomain = await getProjectDomain(opts);
@@ -1228,7 +1357,7 @@ async function doOtMv(src, dst, opts) {
       try {
         const doc = await otClientResolveExisting(c, srcNames);
 
-        const ops = [];
+        const ops = /** @type {OtOp[]} */ ([]);
         const dstAccess = await otClientResolveOrCreateParents(c, ops, dstNames, srcBasename);
         if ('existing' in dstAccess) {
           otRequireNotDir(doc);
@@ -1243,7 +1372,7 @@ async function doOtMv(src, dst, opts) {
           ops.push({
             type: 'rename',
             docId: doc.docId,
-            newName: dstAccess.name,
+            newName: /** @type {string} */ (dstAccess.name),
             newParentId: dstAccess.parent.docId,
           });
         }
@@ -1261,7 +1390,10 @@ async function doOtMv(src, dst, opts) {
   });
 }
 
-async function doOtRm(pathArg, opts) {
+async function doOtRm(
+  /** @type {string} */ pathArg,
+  /** @type {{project?: string, debug?: boolean}} */ opts,
+) {
   const WebSocket = require('ws');
 
   const projectDomain = await getProjectDomain(opts);
@@ -1289,7 +1421,7 @@ async function doOtRm(pathArg, opts) {
       try {
         const doc = await otClientResolveExisting(c, names);
 
-        const ops = [];
+        const ops = /** @type {OtOp[]} */ ([]);
         ops.push({
           type: 'unlink',
           docId: doc.docId,
@@ -1308,7 +1440,10 @@ async function doOtRm(pathArg, opts) {
   });
 }
 
-async function doOtLs(pathArg, opts) {
+async function doOtLs(
+  /** @type {string} */ pathArg,
+  /** @type {{project?: string, debug?: boolean}} */ opts,
+) {
   const WebSocket = require('ws');
 
   const projectDomain = await getProjectDomain(opts);
@@ -1351,7 +1486,9 @@ async function doOtLs(pathArg, opts) {
   });
 }
 
-async function doOtRequestJoin(opts) {
+async function doOtRequestJoin(
+  /** @type {{project?: string, debug?: boolean, randomName?: boolean}} */ opts,
+) {
   const WebSocket = require('ws');
 
   const projectDomain = await getProjectDomain(opts);
@@ -1404,7 +1541,7 @@ async function doOtRequestJoin(opts) {
     });
   }
 
-  let inviteRequested = null;
+  let /** @type {Resolvers} */ inviteRequested = /** @type {never} */ (null);
   const invitePromised = new Promise((resolve, reject) => {
     inviteRequested = {resolve, reject};
   });
@@ -1414,7 +1551,7 @@ async function doOtRequestJoin(opts) {
         // And yet here we are doing the same thing, trusting the broadcast
         // about our invite.
         const {resolve} = inviteRequested;
-        inviteRequested = null;
+        inviteRequested = /** @type {never} */ (null);
         resolve(msg.payload.user);
       }
     }
@@ -1478,7 +1615,7 @@ async function doOtRequestJoin(opts) {
   });
 }
 
-async function doOtStatus(opts) {
+async function doOtStatus(/** @type {{project?: string, debug?: boolean}} */ opts) {
   const WebSocket = require('ws');
 
   const projectDomain = await getProjectDomain(opts);
@@ -1578,7 +1715,10 @@ async function doHours() {
   }
 }
 
-async function doProjectCreate(domain, opts) {
+async function doProjectCreate(
+  /** @type {string | undefined} */ domain,
+  /** @type {{remix?: string, remote?: boolean}} */ opts,
+) {
   const fromDomain = opts.remix || 'glitch-hello-node';
   const reqBody = {};
   if (domain) {
@@ -1606,7 +1746,7 @@ async function doProjectCreate(domain, opts) {
   }
 }
 
-async function doProjectInfo(opts) {
+async function doProjectInfo(/** @type {{project?: string}} */ opts) {
   const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
   console.log(`\
@@ -1619,7 +1759,17 @@ Last edited       ${new Date(project.updatedAt).toLocaleString()}
 Created at        ${new Date(project.createdAt).toLocaleString()}`);
 }
 
-async function doProjectUpdate(opts) {
+async function doProjectUpdate(
+  /**
+   * @type {{
+   *   project?: string,
+   *   domain?: string,
+   *   description?: string,
+   *   private?: boolean,
+   *   privacy?: string,
+   * }}
+   */ opts,
+) {
   const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
 
@@ -1653,7 +1803,7 @@ async function doProjectUpdate(opts) {
   if (!res.ok) throw new Error(`Glitch projects patch response ${res.status} not ok, body ${await res.text()}`);
 }
 
-async function doProjectDelete(opts) {
+async function doProjectDelete(/** @type {{project?: string}} */ opts) {
   const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
   const res = await fetch(`https://api.glitch.com/v1/projects/${project.id}`, {
@@ -1665,7 +1815,7 @@ async function doProjectDelete(opts) {
   if (!res.ok) throw new Error(`Glitch projects delete response ${res.status} not ok, body ${await res.text()}`);
 }
 
-async function doProjectUndelete(opts) {
+async function doProjectUndelete(/** @type {{project?: string}} */ opts) {
   const projectDomain = await getProjectDomain(opts);
   // is there a way to get a deleted project by domain in the v1 API?
   // const {user} = await boot();
@@ -1686,7 +1836,7 @@ async function doProjectUndelete(opts) {
   if (!res.ok) throw new Error(`Glitch projects undelete response ${res.status} not ok, body ${await res.text()}`);
 }
 
-async function doProjectList(opts) {
+async function doProjectList(/** @type {{deleted?: boolean}} */ opts) {
   const {user} = await boot();
   const persistentToken = await getPersistentToken();
 
@@ -1728,7 +1878,10 @@ async function doProjectList(opts) {
   }
 }
 
-async function doMemberAdd(login, opts) {
+async function doMemberAdd(
+  /** @type {string} */ login,
+  /** @type {{project?: string, numeric?: boolean}} */ opts,
+) {
   const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
   const userId = opts.numeric ? +login : (await getUserByLogin(login)).id;
@@ -1748,7 +1901,10 @@ async function doMemberAdd(login, opts) {
   if (!res.ok) throw new Error(`Glitch v0 project permissions response ${res.status} not ok, body ${await res.text()}`);
 }
 
-async function doMemberRm(login, opts) {
+async function doMemberRm(
+  /** @type {string} */ login,
+  /** @type {{project?: string, numeric?: boolean}} */ opts,
+) {
   const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
   const userId = opts.numeric ? +login : (await getUserByLogin(login)).id;
@@ -1762,7 +1918,7 @@ async function doMemberRm(login, opts) {
   if (!res.ok) throw new Error(`Glitch projects users delete response ${res.status} not ok, body ${await res.text()}`);
 }
 
-async function doMemberLeave(opts) {
+async function doMemberLeave(/** @type {{project?: string}} */ opts) {
   const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
   const {user} = await boot();
@@ -1776,10 +1932,10 @@ async function doMemberLeave(opts) {
   if (!res.ok) throw new Error(`Glitch projects users delete response ${res.status} not ok, body ${await res.text()}`);
 }
 
-async function doMemberList(opts) {
+async function doMemberList(/** @type {{project?: string}} */ opts) {
   const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
-  const idParams = project.permissions.map((permission) => `id=${permission.userId}`).join('&');
+  const idParams = /** @type {any[]} */ (project.permissions).map((permission) => `id=${permission.userId}`).join('&');
   const res = await fetch(`https://api.glitch.com/v1/users/by/id?${idParams}`);
   if (!res.ok) throw new Error(`Glitch users by ID response ${res.status} not ok, body ${await res.text()}`);
   const users = await res.json();
@@ -1793,7 +1949,7 @@ async function doMemberList(opts) {
   }
 }
 
-async function doDomainAdd(domain, opts) {
+async function doDomainAdd(/** @type {string} */ domain, /** @type {{project?: string}} */ opts) {
   const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
   const res = await fetch(`https://api.glitch.com/v1/projects/${project.id}/domains`, {
@@ -1807,7 +1963,7 @@ async function doDomainAdd(domain, opts) {
   if (!res.ok) throw new Error(`Glitch projects domains response ${res.status} not ok, body ${await res.text()}`);
 }
 
-async function doDomainRm(domain, opts) {
+async function doDomainRm(/** @type {string} */ domain, /** @type {{project?: string}} */ opts) {
   const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
   const res = await fetch(`https://api.glitch.com/v1/projects/${project.id}/domains`, {
@@ -1821,7 +1977,7 @@ async function doDomainRm(domain, opts) {
   if (!res.ok) throw new Error(`Glitch projects domains delete response ${res.status} not ok, body ${await res.text()}`);
 }
 
-async function doDomainList(opts) {
+async function doDomainList(/** @type {{project?: string}} */ opts) {
   const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
   const res = await fetch(`https://api.glitch.com/v1/projects/${project.id}/domains`, {
@@ -1836,19 +1992,19 @@ async function doDomainList(opts) {
   }
 }
 
-async function doWebApp(opts) {
+async function doWebApp(/** @type {{project?: string}} */ opts) {
   console.log(`https://${await getProjectDomain(opts)}.glitch.me/`);
 }
 
-async function doWebDetails(opts) {
+async function doWebDetails(/** @type {{project?: string}} */ opts) {
   console.log(`https://glitch.com/~${await getProjectDomain(opts)}`);
 }
 
-async function doWebEdit(opts) {
+async function doWebEdit(/** @type {{project?: string}} */ opts) {
   console.log(`https://glitch.com/edit/#!/${await getProjectDomain(opts)}`);
 }
 
-async function doWebTerm(opts) {
+async function doWebTerm(/** @type {{project?: string, cap?: boolean}} */ opts) {
   const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
   if (opts.cap) {
@@ -1866,7 +2022,7 @@ async function doWebTerm(opts) {
   }
 }
 
-async function doWebDebugger(opts) {
+async function doWebDebugger(/** @type {{project?: string, cap?: boolean}} */ opts) {
   const projectDomain = await getProjectDomain(opts);
   const project = await getProjectByDomain(projectDomain);
   if (opts.cap) {
@@ -1884,7 +2040,7 @@ async function doWebDebugger(opts) {
   }
 }
 
-async function doConsoleAddMe(opts) {
+async function doConsoleAddMe() {
   const {user} = await boot();
   console.log(`await application.glitchApi().v0.createProjectPermission(application.currentProject().id(), ${JSON.stringify(user.id)}, ${JSON.stringify(ACCESS_LEVEL_MEMBER)});`);
 }
@@ -2004,7 +2160,7 @@ Examples:
     snail rsync -- -aP notes/ my-domain:notes`)
   .action(doRsync);
 commander.program
-  .command('rsync-rsh <args...>', {hidden: true})
+  .command('rsync-rsh <host> <args...>', {hidden: true})
   .action(doRsyncRsh);
 const cmdSsh = commander.program
   .command('ssh')

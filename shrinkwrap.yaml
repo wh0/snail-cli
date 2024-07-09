@@ -5,10 +5,15 @@ dependencies:
   socket.io-client: 2.5.0
   ws: 7.5.10
 devDependencies:
+  '@types/node': 20.14.10
+  '@types/node-fetch': 2.6.11
+  '@types/socket.io-client': 1.4.36
+  '@types/ws': 7.4.7
   eslint: 7.32.0
   eslint-config-airbnb-base: 15.0.0
   eslint-plugin-import: 2.29.1
   terser: 5.31.1
+  typescript: 4.9.5
   webpack: 5.92.1
   webpack-cli: 4.10.0
 packages:
@@ -139,12 +144,29 @@ packages:
     dev: true
     resolution:
       integrity: sha512-dRLjCWHYg4oaA77cxO64oO+7JwCwnIzkZPdrrC71jQmQtlhM556pwKo5bUzqvZndkVbeFLIIi+9TC40JNF5hNQ==
+  /@types/node-fetch/2.6.11:
+    dependencies:
+      '@types/node': 20.14.10
+      form-data: 4.0.0
+    dev: true
+    resolution:
+      integrity: sha512-24xFj9R5+rfQJLRyM56qh+wnVSYhyXC2tkoBndtY0U+vubqNsYXGjufB2nn8Q6gt0LrARwL6UBtMCSVCwl4B1g==
   /@types/node/20.14.10:
     dependencies:
       undici-types: 5.26.5
     dev: true
     resolution:
       integrity: sha512-MdiXf+nDuMvY0gJKxyfZ7/6UFsETO7mGKF54MVD/ekJS6HdFtpZFBgrh6Pseu64XTb2MLyFPlbW6hj8HYRQNOQ==
+  /@types/socket.io-client/1.4.36:
+    dev: true
+    resolution:
+      integrity: sha512-ZJWjtFBeBy1kRSYpVbeGYTElf6BqPQUkXDlHHD4k/42byCN5Rh027f4yARHCink9sKAkbtGZXEAmR0ZCnc2/Ag==
+  /@types/ws/7.4.7:
+    dependencies:
+      '@types/node': 20.14.10
+    dev: true
+    resolution:
+      integrity: sha512-JQbbmxZTZehdc2iszGKs5oC3NFnjeay7mtAWrdt7qNtAVK0g19muApzAy4bm9byz79xa2ZnO/BOBC2R8RC5Lww==
   /@webassemblyjs/ast/1.12.1:
     dependencies:
       '@webassemblyjs/helper-numbers': 1.11.6
@@ -460,7 +482,6 @@ packages:
     resolution:
       integrity: sha512-Z7tMw1ytTXt5jqMcOP+OQteU1VuNK9Y02uuJtKQ1Sv69jXQKKg5cibLwGJow8yzZP+eAc18EmLGPal0bp36rvQ==
   /asynckit/0.4.0:
-    dev: false
     resolution:
       integrity: sha1-x57Zf380y48robyXkLzDZkdLS3k=
   /available-typed-arrays/1.0.7:
@@ -599,7 +620,6 @@ packages:
   /combined-stream/1.0.8:
     dependencies:
       delayed-stream: 1.0.0
-    dev: false
     engines:
       node: '>= 0.8'
     resolution:
@@ -718,7 +738,6 @@ packages:
     resolution:
       integrity: sha512-8QmQKqEASLd5nx0U1B1okLElbUuuttJ/AnYmRXbbbGDWh6uS208EjD4Xqq/I9wK7u0v6O08XhTWnt5XtEbR6Dg==
   /delayed-stream/1.0.0:
-    dev: false
     engines:
       node: '>=0.4.0'
     resolution:
@@ -1176,7 +1195,6 @@ packages:
       asynckit: 0.4.0
       combined-stream: 1.0.8
       mime-types: 2.1.35
-    dev: false
     engines:
       node: '>= 6'
     resolution:
@@ -2347,6 +2365,13 @@ packages:
       node: '>= 0.4'
     resolution:
       integrity: sha512-/OxDN6OtAk5KBpGb28T+HZc2M+ADtvRxXrKKbUwtsLgdoxgX13hyy7ek6bFRl5+aBs2yZzB0c4CnQfAtVypW/g==
+  /typescript/4.9.5:
+    dev: true
+    engines:
+      node: '>=4.2.0'
+    hasBin: true
+    resolution:
+      integrity: sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==
   /unbox-primitive/1.0.2:
     dependencies:
       call-bind: 1.0.7
@@ -2540,6 +2565,10 @@ registry: 'https://registry.npmjs.org/'
 shrinkwrapMinorVersion: 9
 shrinkwrapVersion: 3
 specifiers:
+  '@types/node': ^20.14.10
+  '@types/node-fetch': ^2.6.11
+  '@types/socket.io-client': ^1.4.36
+  '@types/ws': ^7.4.7
   commander: ^7.2.0
   eslint: ^7.32.0
   eslint-config-airbnb-base: ^15.0.0
@@ -2548,6 +2577,7 @@ specifiers:
   node-fetch: ^2.7.0
   socket.io-client: ^2.5.0
   terser: ^5.31.1
+  typescript: ^4.9.5
   webpack: ^5.92.1
   webpack-cli: ^4.10.0
   ws: ~7.5.10

@@ -1,0 +1,14 @@
+{
+  "include": [
+    "*.js"
+  ],
+  "compilerOptions": {
+    "checkJs": true,
+    "strict": true,
+    "paths": {
+      "events": ["./node_modules/@types/node/events"]
+    },
+    "resolveJsonModule": true,
+    "skipLibCheck": true
+  }
+}

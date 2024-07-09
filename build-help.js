@@ -5,12 +5,12 @@ const commander = require('commander');
 
 const packageMeta = require('./package.json');
 
-const highSubs = new Map();
-const highSubsOrder = [];
+const /** @type {Map<string, string>} */ highSubs = new Map();
+const /** @type {string[]} */ highSubsOrder = [];
 const highSubCodeStart = 0xe000;
 let highSubCodeNext = highSubCodeStart;
 
-function highSub(markup) {
+function highSub(/** @type {string} */ markup) {
   if (highSubs.has(markup)) return highSubs.get(markup);
   const code = highSubCodeNext++;
   if (code > 0xf8ff) throw new Error('too many highSub');
@@ -26,8 +26,8 @@ function resetHighSubs() {
   highSubCodeNext = highSubCodeStart;
 }
 
-function lowerHighSubs(s) {
-  function replace(v, x, y) {
+function lowerHighSubs(/** @type {string} */ s) {
+  function replace(/** @type {string} */ v, /** @type {string} */ x, /** @type {string} */ y) {
     return v.split(x).join(y);
   }
   let lowered = s;
@@ -35,12 +35,12 @@ function lowerHighSubs(s) {
   lowered = replace(lowered, '<', '&lt;');
   lowered = replace(lowered, '>', '&gt;');
   for (const markup of highSubsOrder) {
-    lowered = replace(lowered, highSubs.get(markup), markup);
+    lowered = replace(lowered, /** @type {string} */ (highSubs.get(markup)), markup);
   }
   return lowered;
 }
 
-function briefNameFromCommand(cmd) {
+function briefNameFromCommand(/** @type {commander.Command} */ cmd) {
   let name = cmd.name();
   for (let parentCmd = cmd.parent; parentCmd; parentCmd = parentCmd.parent) {
     name = `${parentCmd.name()} ${name}`;
@@ -48,7 +48,7 @@ function briefNameFromCommand(cmd) {
   return name;
 }
 
-function filenameFromCommand(cmd) {
+function filenameFromCommand(/** @type {commander.Command} */ cmd) {
   if (cmd === commander.program) return 'index.html';
   let filename = `${cmd.name()}.html`;
   for (
@@ -61,13 +61,13 @@ function filenameFromCommand(cmd) {
   return filename;
 }
 
-function linkStartForCommand(cmd) {
+function linkStartForCommand(/** @type {commander.Command} */ cmd) {
   // Slight hack: don't create link for implicit help comand.
   if (cmd.name() === 'help') return '';
   return `<a href="${filenameFromCommand(cmd)}">`;
 }
 
-function linkEndForCommand(cmd) {
+function linkEndForCommand(/** @type {commander.Command} */ cmd) {
   if (cmd.name() === 'help') return '';
   return '</a>';
 }
@@ -91,10 +91,10 @@ commander.program.configureHelp({
 });
 
 // Haaaaaaaaaaaaaaaaaaaaaaaaaax.
-commander.program.parse = () => { };
+commander.program.parse = () => commander.program;
 require('./src/index');
 
-function visitCommand(cmd) {
+function visitCommand(/** @type {commander.Command} */ cmd) {
   const briefName = briefNameFromCommand(cmd);
   const filename = filenameFromCommand(cmd);
   const dstPath = path.join('help-staging', filename);
@@ -102,6 +102,7 @@ function visitCommand(cmd) {
 
   let content = '';
   cmd.outputHelp({
+    // @ts-expect-error `write` is missing from type declaration
     write: (chunk) => {
       content += chunk;
     },

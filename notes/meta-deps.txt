@@ -12,6 +12,13 @@ Can't update to 8.x until we raise our minimum node version.
 
 Can't update to 8.x until we raise our minimum node version.
 
+## events
+
+Webpack depends on events for some reason.
+As a separate problem, TypeScript incorrectly resolves `require('events')` to
+this package instead of Node.js's built-in module.
+And events doesn't satisfy the type checking configuration we're using.
+
 ## form-data
 
 Want to remove this, but node-fetch alone can't send a known-length file to S3.

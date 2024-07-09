@@ -1,3 +1,6 @@
+typecheck
+- `tsc -p jsconfig.json`
+
 lint
 - `eslint *.js src`
 
