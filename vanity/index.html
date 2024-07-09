@@ -243,13 +243,16 @@ npm install -g
   <p>
     <strong>Sign-in code over email option.</strong>
   </p>
-  <p>
-    💔 This doesn't work anymore, Glitch now requires a CAPTCHA solution for this endpoint.
-  </p>
 <pre class="sigil sigil-command">
-<span class="command">snail</span> auth send-email <span class="placeholder">snailuser@example.com</span>
 <span class="command">snail</span> auth code <span class="placeholder">xxxxxxxxx-xxxxx-xxxxxxxx</span>
 </pre>
+  <p>
+    Request an email with the code from <a href="https://glitch.com/signin">https://glitch.com/signin</a>.
+    <em>Don't</em> click the link in the email.
+  </p>
+  <p>
+    💔 Glitch now requires a CAPTCHA solution for this endpoint, so <code><span class="command">snail</span> auth send-email</code> doesn't work anymore.
+  </p>
   <p>
     <strong>New anonymous user option.</strong>
   </p>
