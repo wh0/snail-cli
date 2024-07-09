@@ -2,7 +2,7 @@
 
 /* eslint-disable no-var, import/newline-after-import */
 
-var base64 = 'base64';
+var base64 = /** @type {const} */ ('base64');
 var data = 'data';
 
 var {
@@ -11,9 +11,9 @@ var {
   argv: [, commandB64],
 } = process;
 
-var pingTimer = null;
+var /** @type {NodeJS.Timeout | null} */ pingTimer = null;
 
-var writeln = (v) => {
+var writeln = (/** @type {string} */ v) => {
   if (pingTimer) {
     clearTimeout(pingTimer);
     pingTimer = null;
@@ -37,7 +37,7 @@ processStdin.on(data, (chunk) => {
     }, 4000);
   }
   var parts = (recvBuf + chunk).split('\n');
-  recvBuf = parts.pop();
+  recvBuf = /** @type {string} */ (parts.pop());
   for (var part of parts) {
     if (part) {
       child.stdin.write(Buffer.from(part, base64));
