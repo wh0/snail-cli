@@ -32,6 +32,14 @@ Can't update to 3.x until we raise our minimum node version.
 
 Stuck on 2.x because Glitch's WeTTY server uses version 2.x.
 
+## typescript
+
+Can't update to 5.x until we raise our minimum node version.
+
+## webpack-cli
+
+Can't update to 5.x until we raise our minimum node version.
+
 ## ws
 
 Sticking to 7.5.x, to match engine.io-client so that we don't install a
