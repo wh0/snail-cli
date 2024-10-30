@@ -732,10 +732,25 @@ ls -al .data
   (async () => {
     try {
       let practiceProjectDomain = window.localStorage.getItem('practice-project-domain');
+      let practiceProjectId;
+
+      if (practiceProjectDomain) {
+        console.log('practice project domain set', practiceProjectDomain);
+        const res = await fetch(`https://api.glitch.com/v1/projects/by/domain?domain=${practiceProjectDomain}`);
+        if (!res.ok) throw new Error(`Glitch projects by domain response ${res.status} not ok`);
+        const body = await res.json();
+        if (practiceProjectDomain in body) {
+          practiceProjectId = body[practiceProjectDomain].id;
+          console.log('practice project id', practiceProjectId);
+        } else {
+          console.log(`practice project by domain not found`, practiceProjectDomain);
+          practiceProjectDomain = null;
+        }
+      } else {
+        console.log('practice project domain not set');
+      }
 
       if (!practiceProjectDomain) {
-        console.log('practice project domain not set');
-
         practiceCreate.hidden = false;
         noPracticeArea.hidden = false;
 
@@ -776,20 +791,18 @@ ls -al .data
         practiceCreateDone.hidden = false;
         remixFrameContainer.hidden = true;
         remixFrameContainer.removeChild(remixFrame);
-      } else {
-        console.log('practice project domain set', practiceProjectDomain);
+
+        const res = await fetch(`https://api.glitch.com/v1/projects/by/domain?domain=${practiceProjectDomain}`);
+        if (!res.ok) throw new Error(`Glitch projects by domain response ${res.status} not ok`);
+        const body = await res.json();
+        if (!(practiceProjectDomain in body)) throw new Error(`Glitch project domain ${practiceProjectDomain} not found`);
+        practiceProjectId = body[practiceProjectDomain].id;
+        console.log('practice project id', practiceProjectId);
       }
 
       practiceProjectLink.href = `https://glitch.com/~${practiceProjectDomain}`;
       practiceProjectLink.textContent = practiceProjectDomain;
       practiceContinue.hidden = false;
-
-      const res = await fetch(`https://api.glitch.com/v1/projects/by/domain?domain=${practiceProjectDomain}`);
-      if (!res.ok) throw new Error(`Glitch projects by domain response ${res.status} not ok`);
-      const body = await res.json();
-      if (!(practiceProjectDomain in body)) throw new Error(`Glitch project domain ${practiceProjectDomain} not found`);
-      const practiceProjectId = body[practiceProjectDomain].id;
-      console.log('practice project id', practiceProjectId);
 
       consoleFrame = document.createElement('iframe');
       consoleFrame.src = `https://glitch.com/edit/console.html?${practiceProjectId}`;
