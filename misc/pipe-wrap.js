@@ -1,4 +1,4 @@
-// minify this file for `doTPipe`
+// minify this file for `doPipe` `WRAPPER_SRC`
 
 /* eslint-disable no-var, import/newline-after-import */
 
