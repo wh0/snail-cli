@@ -800,7 +800,7 @@ async function doPipe(
             if (returned) continue;
             returned = true;
             process.stdin.pause();
-            process.exitCode = +part.slice(1);
+            process.exitCode = +part.slice(2);
             continue;
         }
       }
