@@ -97,6 +97,7 @@ require('./src/index');
 function visitCommand(/** @type {commander.Command} */ cmd) {
   const briefName = briefNameFromCommand(cmd);
   const filename = filenameFromCommand(cmd);
+  const webPath = cmd === commander.program ? '' : filename;
   const dstPath = path.join('help-staging', filename);
   console.error(`${briefName} -> ${dstPath}`);
 
@@ -127,7 +128,7 @@ function visitCommand(/** @type {commander.Command} */ cmd) {
 <link rel="stylesheet" href="../help.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,400;0,600;1,400&display=swap">
 <link rel="icon" href="../snail.svg">
-<link rel="canonical" href="https://snail-cli.glitch.me/help/${filename}">
+<link rel="canonical" href="https://snail-cli.glitch.me/help/${webPath}">
 
 <div class="header">
   <div class="line">
